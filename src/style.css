@@ -1,0 +1,342 @@
+:root {
+  --bg-primary: #0f0f1a;
+  --bg-secondary: #1a1a2e;
+  --bg-card: #16213e;
+  --text-primary: #e8e8e8;
+  --text-secondary: #a0a0a0;
+  --accent-primary: #4e54c8;
+  --accent-secondary: #8f94fb;
+  --cell-inactive: #2d3748;
+  --cell-active: #38b2ac;
+  --cell-free: #ecc94b;
+  --cell-reach: #ed8936;
+  --cell-line: #e53e3e;
+  --shadow-glow: 0 0 20px rgba(78, 84, 200, 0.4);
+  --border-radius: 12px;
+  --transition: all 0.3s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+
+h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  max-width: 1200px;
+  width: 100%;
+}
+
+/* ビンゴカード */
+.bingo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.bingo-card {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-glow);
+}
+
+.cell {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border-radius: 8px;
+  background: var(--cell-inactive);
+  color: var(--text-secondary);
+  transition: var(--transition);
+  position: relative;
+  cursor: default;
+}
+
+.cell.active {
+  background: linear-gradient(135deg, var(--cell-active), #319795);
+  color: white;
+  box-shadow: 0 0 15px rgba(56, 178, 172, 0.5);
+  transform: scale(1.05);
+}
+
+.cell.free {
+  background: linear-gradient(135deg, var(--cell-free), #d69e2e);
+  color: #1a1a2e;
+  box-shadow: 0 0 15px rgba(236, 201, 75, 0.5);
+}
+
+.cell.reach {
+  animation: pulse-reach 1.5s infinite;
+}
+
+.cell.reach::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 3px solid var(--cell-reach);
+  border-radius: 10px;
+  animation: glow-reach 1.5s infinite;
+}
+
+.cell.line {
+  background: linear-gradient(135deg, var(--cell-line), #c53030);
+  color: white;
+  box-shadow: 0 0 20px rgba(229, 62, 62, 0.6);
+  animation: celebrate 0.5s ease-out;
+}
+
+@keyframes pulse-reach {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes glow-reach {
+  0%, 100% { box-shadow: 0 0 5px var(--cell-reach); }
+  50% { box-shadow: 0 0 15px var(--cell-reach); }
+}
+
+@keyframes celebrate {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1.05); }
+}
+
+/* 抽選結果 */
+.result-display {
+  min-height: 80px;
+  padding: 1rem;
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  text-align: center;
+  width: 100%;
+  max-width: 340px;
+}
+
+.result-display h3 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.result-number {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--accent-secondary);
+}
+
+.result-info {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+.result-info.bonus {
+  color: var(--cell-free);
+}
+
+.result-info.win {
+  color: var(--cell-line);
+  font-weight: 600;
+}
+
+/* ボタン */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-draw {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+}
+
+.btn-draw:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(78, 84, 200, 0.4);
+}
+
+.btn-draw:active {
+  transform: translateY(0);
+}
+
+.btn-reset {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 2px solid var(--cell-inactive);
+}
+
+.btn-reset:hover {
+  border-color: var(--cell-line);
+  color: var(--cell-line);
+}
+
+/* 統計パネル */
+.stats-section {
+  background: var(--bg-card);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-glow);
+  min-width: 320px;
+}
+
+.stats-section h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--accent-secondary);
+  border-bottom: 1px solid var(--cell-inactive);
+  padding-bottom: 0.5rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-item {
+  background: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-secondary);
+}
+
+.stat-value.highlight {
+  color: var(--cell-active);
+}
+
+/* スコア分布 */
+.distribution {
+  margin-top: 1rem;
+}
+
+.distribution h3 {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.distribution-chart {
+  display: flex;
+  gap: 4px;
+  height: 80px;
+  align-items: flex-end;
+}
+
+.distribution-bar {
+  flex: 1;
+  min-width: 20px;
+  background: linear-gradient(to top, var(--accent-primary), var(--accent-secondary));
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  transition: var(--transition);
+}
+
+.distribution-bar:hover {
+  opacity: 0.8;
+}
+
+.distribution-label {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.distribution-count {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: var(--text-primary);
+}
+
+.distribution-empty {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 1rem;
+}
+
+/* レスポンシブ */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  .cell {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+  
+  .container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .stats-section {
+    min-width: 100%;
+  }
+}
