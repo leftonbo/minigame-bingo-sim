@@ -20,6 +20,7 @@ export class BingoGame {
   private bonusRegistry: BonusRegistry;
   private statisticsManager: StatisticsManager;
   private lastResult: DrawResult | null = null;
+  private pendingBonusType: BonusType | null = null;
 
   constructor() {
     this.card = this.createInitialCard();
@@ -48,6 +49,7 @@ export class BingoGame {
     this.card = this.createInitialCard();
     this.statisticsManager.reset();
     this.lastResult = null;
+    this.pendingBonusType = null;
     this.updateReachStatus();
   }
 
@@ -76,28 +78,36 @@ export class BingoGame {
 
     let isHit = false;
     let activatedNumbers: number[] = [];
-    let bonusTriggered = false;
+    let bonusQueued = false;
+    let bonusApplied = false;
     let bonusType: BonusType | undefined;
 
-    // ボーナスチェック
+    // 予約済みボーナスを適用
+    if (this.pendingBonusType) {
+      const handler = this.bonusRegistry.get(this.pendingBonusType);
+      if (handler) {
+        const bonusActivated = handler.execute(this.card);
+        activatedNumbers.push(...bonusActivated);
+        bonusApplied = true;
+        bonusType = this.pendingBonusType;
+      }
+      this.pendingBonusType = null;
+    }
+
+    // ボーナス予約チェック（次回適用）
     const bonus = getBonusForNumber(drawnNumber);
     if (bonus) {
-      const handler = this.bonusRegistry.get(bonus);
-      if (handler) {
-        activatedNumbers = handler.execute(this.card);
-        bonusTriggered = true;
-        bonusType = bonus;
-        isHit = activatedNumbers.length > 0;
-      }
+      this.pendingBonusType = bonus;
+      bonusQueued = true;
     } else {
       // 通常抽選
       const cell = this.card.find((c) => c.number === drawnNumber);
       if (cell && !cell.isActive) {
         cell.isActive = true;
-        activatedNumbers = [drawnNumber];
-        isHit = true;
+        activatedNumbers.push(drawnNumber);
       }
     }
+    isHit = activatedNumbers.length > 0;
 
     // ライン判定
     const { linesCompleted, lineNumbers } = this.checkLines();
@@ -116,7 +126,8 @@ export class BingoGame {
       drawnNumber,
       isHit,
       activatedNumbers,
-      bonusTriggered,
+      bonusQueued,
+      bonusApplied,
       bonusType,
       linesCompleted,
       lineNumbers,

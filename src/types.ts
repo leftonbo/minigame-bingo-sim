@@ -38,9 +38,11 @@ export interface DrawResult {
   isHit: boolean;
   /** アクティブ化したマスの数字 */
   activatedNumbers: number[];
-  /** ボーナス発生したか */
-  bonusTriggered: boolean;
-  /** ボーナスの種類（発生した場合） */
+  /** ボーナス発生（次回適用予約）したか */
+  bonusQueued: boolean;
+  /** 予約済みボーナスを適用したか */
+  bonusApplied: boolean;
+  /** ボーナスの種類（適用された場合） */
   bonusType?: BonusType;
   /** 成立したラインの数 */
   linesCompleted: number;

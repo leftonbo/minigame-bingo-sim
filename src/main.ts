@@ -92,12 +92,19 @@ class BingoUI {
   private showResult(result: DrawResult): void {
     let infoHtml = '';
     
-    if (result.bonusTriggered) {
-      infoHtml = `<div class="result-info bonus">🎉 ボーナス発生！ ${result.activatedNumbers.join(', ')} がアクティブに</div>`;
-    } else if (result.isHit) {
-      infoHtml = `<div class="result-info">ヒット！ ${result.drawnNumber} がアクティブに</div>`;
-    } else {
-      infoHtml = `<div class="result-info">ハズレ（${result.drawnNumber}は既にアクティブ）</div>`;
+    if (result.bonusApplied) {
+      infoHtml += `<div class="result-info bonus">🎉 ボーナス適用！ ${result.activatedNumbers.join(', ')} がアクティブに</div>`;
+    }
+    if (result.bonusQueued) {
+      infoHtml += `<div class="result-info bonus">✨ ボーナス発生！ 次回の抽選で適用</div>`;
+    }
+
+    if (!result.bonusQueued) {
+      if (result.activatedNumbers.includes(result.drawnNumber)) {
+        infoHtml += `<div class="result-info">ヒット！ ${result.drawnNumber} がアクティブに</div>`;
+      } else {
+        infoHtml += `<div class="result-info">ハズレ（${result.drawnNumber}は既にアクティブ）</div>`;
+      }
     }
 
     if (result.linesCompleted > 0) {
