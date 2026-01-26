@@ -227,10 +227,11 @@ class BingoUI {
 
     const bars = distribution.map(([score, count]) => {
       const height = maxCount > 0 ? (count / maxCount) * maxHeight : 0;
-      const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0';
+      const percentage = total > 0 ? ((count / total) * 100).toFixed(3) : '0';
       return `
         <div class="distribution-bar" style="height: ${height}px;" title="スコア${score}: ${count}回 (${percentage}%)">
           <span class="distribution-count">${count}</span>
+          <span class="distribution-percent">${percentage}%</span>
           <span class="distribution-label">${score}</span>
         </div>
       `;

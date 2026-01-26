@@ -332,6 +332,15 @@ h1 {
   color: var(--text-primary);
 }
 
+.distribution-percent {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+}
+
 .distribution-empty {
   font-size: 0.85rem;
   color: var(--text-secondary);
