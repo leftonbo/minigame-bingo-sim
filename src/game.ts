@@ -74,6 +74,7 @@ export class BingoGame {
   draw(): DrawResult {
     // 前回ライン成立したマスを非アクティブに戻す（フリーマス以外）
     this.resetLineStatus();
+    this.ensureReachBeforeDraw();
 
     // 1～25からランダムに抽選
     const drawnNumber = Math.floor(Math.random() * 25) + 1;
@@ -208,6 +209,51 @@ export class BingoGame {
       linesCompleted,
       lineNumbers: Array.from(lineNumbersSet).sort((a, b) => a - b),
     };
+  }
+
+  /** 抽選前にリーチマスがあるか */
+  private hasReachCells(): boolean {
+    return this.card.some((cell) => cell.isReach && !cell.isActive);
+  }
+
+  /** 指定マスを開けるとライン成立するか */
+  private wouldCompleteLine(targetIndex: number): boolean {
+    for (const line of ALL_LINES) {
+      if (!line.includes(targetIndex)) {
+        continue;
+      }
+      const activeCount = line.filter((idx) => this.card[idx].isActive).length;
+      if (activeCount === 4) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** 抽選前にリーチが出るまでランダム開放 */
+  private ensureReachBeforeDraw(): void {
+    this.updateReachStatus();
+    if (this.hasReachCells()) {
+      return;
+    }
+
+    const maxAttempts = this.card.length;
+    let attempts = 0;
+
+    while (!this.hasReachCells() && attempts < maxAttempts) {
+      const candidates = this.card
+        .map((cell, idx) => ({ cell, idx }))
+        .filter(({ cell, idx }) => !cell.isActive && !this.wouldCompleteLine(idx));
+
+      if (candidates.length === 0) {
+        break;
+      }
+
+      const { cell } = candidates[Math.floor(Math.random() * candidates.length)];
+      cell.isActive = true;
+      this.updateReachStatus();
+      attempts++;
+    }
   }
 
   /** リーチ状態を更新 */
