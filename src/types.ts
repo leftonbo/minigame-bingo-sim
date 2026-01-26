@@ -21,11 +21,16 @@ export type BingoCard = CellState[];
 
 /** ボーナスの種類 */
 export const BonusType = {
-  /** 13が出た時：2マスをアクティブ化 */
-  DOUBLE_ACTIVATE: 'DOUBLE_ACTIVATE',
-  // 今後追加予定のボーナス
-  // TRIPLE_ACTIVATE: 'TRIPLE_ACTIVATE',
-  // ACTIVATE_ROW: 'ACTIVATE_ROW',
+  /** 未解放マスをランダムで1個アクティブ化 */
+  UNLOCK_RANDOM_ONE: 'UNLOCK_RANDOM_ONE',
+  /** ランダムで3個アクティブ化（ハズレあり） */
+  RANDOM_THREE_WITH_MISS: 'RANDOM_THREE_WITH_MISS',
+  /** 上下マスをアクティブ化 */
+  ACTIVATE_VERTICAL: 'ACTIVATE_VERTICAL',
+  /** 左右マスをアクティブ化 */
+  ACTIVATE_HORIZONTAL: 'ACTIVATE_HORIZONTAL',
+  /** 上下左右マスをアクティブ化 */
+  ACTIVATE_CROSS: 'ACTIVATE_CROSS',
 } as const;
 
 export type BonusType = typeof BonusType[keyof typeof BonusType];

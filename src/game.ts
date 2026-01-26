@@ -12,7 +12,7 @@ import {
   FREE_CELL_NUMBER,
   BonusType,
 } from './types';
-import { createDefaultBonusRegistry, getBonusForNumber, BonusRegistry } from './bonus';
+import { createDefaultBonusRegistry, isBonusTriggerNumber, BonusRegistry } from './bonus';
 import { StatisticsManager } from './statistics';
 
 export class BingoGame {
@@ -20,7 +20,7 @@ export class BingoGame {
   private bonusRegistry: BonusRegistry;
   private statisticsManager: StatisticsManager;
   private lastResult: DrawResult | null = null;
-  private pendingBonusType: BonusType | null = null;
+  private pendingBonus: boolean = false;
 
   constructor() {
     this.card = this.createInitialCard();
@@ -49,7 +49,7 @@ export class BingoGame {
     this.card = this.createInitialCard();
     this.statisticsManager.reset();
     this.lastResult = null;
-    this.pendingBonusType = null;
+    this.pendingBonus = false;
     this.updateReachStatus();
   }
 
@@ -83,21 +83,26 @@ export class BingoGame {
     let bonusType: BonusType | undefined;
 
     // 予約済みボーナスを適用
-    if (this.pendingBonusType) {
-      const handler = this.bonusRegistry.get(this.pendingBonusType);
+    if (this.pendingBonus) {
+      const handlers = this.bonusRegistry.getAll();
+      const handler =
+        handlers.length > 0
+          ? handlers[Math.floor(Math.random() * handlers.length)]
+          : undefined;
       if (handler) {
-        const bonusActivated = handler.execute(this.card);
+        const bonusActivated = handler.execute(this.card, {
+          baseNumber: drawnNumber,
+        });
         activatedNumbers.push(...bonusActivated);
         bonusApplied = true;
-        bonusType = this.pendingBonusType;
+        bonusType = handler.type;
       }
-      this.pendingBonusType = null;
+      this.pendingBonus = false;
     }
 
     // ボーナス予約チェック（次回適用）
-    const bonus = getBonusForNumber(drawnNumber);
-    if (bonus) {
-      this.pendingBonusType = bonus;
+    if (isBonusTriggerNumber(drawnNumber)) {
+      this.pendingBonus = true;
       bonusQueued = true;
     } else {
       // 通常抽選

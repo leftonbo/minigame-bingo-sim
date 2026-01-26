@@ -9,39 +9,180 @@ export interface BonusHandler {
   /** ボーナスの種類 */
   type: BonusType;
   /** ボーナスを実行し、アクティブ化した数字の配列を返す */
-  execute(cells: CellState[]): number[];
+  execute(cells: CellState[], context: BonusContext): number[];
 }
 
 /**
- * 13が出た時のボーナス：非アクティブなマスから2つをアクティブ化
+ * ボーナス実行に必要なコンテキスト
  */
-export class DoubleActivateBonus implements BonusHandler {
-  type = BonusType.DOUBLE_ACTIVATE;
+export interface BonusContext {
+  /** 基準となる数字（上下左右系で使用） */
+  baseNumber?: number;
+}
 
-  execute(cells: CellState[]): number[] {
-    // 非アクティブなマス（フリーマス以外）を取得
+const GRID_SIZE = 5;
+
+const pickRandom = <T>(items: T[]): T | undefined => {
+  if (items.length === 0) {
+    return undefined;
+  }
+  return items[Math.floor(Math.random() * items.length)];
+};
+
+const shuffle = <T>(items: T[]): T[] =>
+  [...items].sort(() => Math.random() - 0.5);
+
+const activateCell = (cell: CellState | undefined): number | null => {
+  if (!cell || cell.isActive) {
+    return null;
+  }
+  cell.isActive = true;
+  return cell.number;
+};
+
+const getBaseIndex = (baseNumber?: number): number | null => {
+  if (!baseNumber) {
+    return null;
+  }
+  const index = baseNumber - 1;
+  if (index < 0 || index >= GRID_SIZE * GRID_SIZE) {
+    return null;
+  }
+  return index;
+};
+
+const getRowCol = (index: number): { row: number; col: number } => ({
+  row: index % GRID_SIZE,
+  col: Math.floor(index / GRID_SIZE),
+});
+
+/**
+ * 未解放マスランダム1個埋める
+ */
+export class UnlockRandomOneBonus implements BonusHandler {
+  type = BonusType.UNLOCK_RANDOM_ONE;
+
+  execute(cells: CellState[], _context: BonusContext): number[] {
     const inactiveCells = cells.filter(
       (cell) => !cell.isActive && !cell.isFree
     );
+    const targetCell = pickRandom(inactiveCells);
+    const activated = activateCell(targetCell);
+    return activated ? [activated] : [];
+  }
+}
 
-    if (inactiveCells.length === 0) {
-      return [];
-    }
+/**
+ * ランダムで3個埋める（ハズレあり）
+ */
+export class RandomThreeWithMissBonus implements BonusHandler {
+  type = BonusType.RANDOM_THREE_WITH_MISS;
 
-    // ランダムに最大2つを選択
-    const shuffled = [...inactiveCells].sort(() => Math.random() - 0.5);
-    const toActivate = shuffled.slice(0, Math.min(2, shuffled.length));
-
-    // アクティブ化
+  execute(cells: CellState[], _context: BonusContext): number[] {
+    const picked = shuffle(cells).slice(0, Math.min(3, cells.length));
     const activatedNumbers: number[] = [];
-    for (const targetCell of toActivate) {
-      const cell = cells.find((c) => c.number === targetCell.number);
-      if (cell) {
-        cell.isActive = true;
-        activatedNumbers.push(cell.number);
+    for (const cell of picked) {
+      const activated = activateCell(cell);
+      if (activated !== null) {
+        activatedNumbers.push(activated);
       }
     }
+    return activatedNumbers;
+  }
+}
 
+/**
+ * 上下マス埋める
+ */
+export class ActivateVerticalBonus implements BonusHandler {
+  type = BonusType.ACTIVATE_VERTICAL;
+
+  execute(cells: CellState[], context: BonusContext): number[] {
+    const baseIndex = getBaseIndex(context.baseNumber);
+    if (baseIndex === null) {
+      return [];
+    }
+    const { row } = getRowCol(baseIndex);
+    const targets: number[] = [];
+    if (row > 0) {
+      targets.push(baseIndex - 1);
+    }
+    if (row < GRID_SIZE - 1) {
+      targets.push(baseIndex + 1);
+    }
+    const activatedNumbers: number[] = [];
+    for (const index of targets) {
+      const activated = activateCell(cells[index]);
+      if (activated !== null) {
+        activatedNumbers.push(activated);
+      }
+    }
+    return activatedNumbers;
+  }
+}
+
+/**
+ * 左右マス埋める
+ */
+export class ActivateHorizontalBonus implements BonusHandler {
+  type = BonusType.ACTIVATE_HORIZONTAL;
+
+  execute(cells: CellState[], context: BonusContext): number[] {
+    const baseIndex = getBaseIndex(context.baseNumber);
+    if (baseIndex === null) {
+      return [];
+    }
+    const { col } = getRowCol(baseIndex);
+    const targets: number[] = [];
+    if (col > 0) {
+      targets.push(baseIndex - GRID_SIZE);
+    }
+    if (col < GRID_SIZE - 1) {
+      targets.push(baseIndex + GRID_SIZE);
+    }
+    const activatedNumbers: number[] = [];
+    for (const index of targets) {
+      const activated = activateCell(cells[index]);
+      if (activated !== null) {
+        activatedNumbers.push(activated);
+      }
+    }
+    return activatedNumbers;
+  }
+}
+
+/**
+ * 上下左右マス埋める
+ */
+export class ActivateCrossBonus implements BonusHandler {
+  type = BonusType.ACTIVATE_CROSS;
+
+  execute(cells: CellState[], context: BonusContext): number[] {
+    const baseIndex = getBaseIndex(context.baseNumber);
+    if (baseIndex === null) {
+      return [];
+    }
+    const { row, col } = getRowCol(baseIndex);
+    const targets: number[] = [];
+    if (row > 0) {
+      targets.push(baseIndex - 1);
+    }
+    if (row < GRID_SIZE - 1) {
+      targets.push(baseIndex + 1);
+    }
+    if (col > 0) {
+      targets.push(baseIndex - GRID_SIZE);
+    }
+    if (col < GRID_SIZE - 1) {
+      targets.push(baseIndex + GRID_SIZE);
+    }
+    const activatedNumbers: number[] = [];
+    for (const index of targets) {
+      const activated = activateCell(cells[index]);
+      if (activated !== null) {
+        activatedNumbers.push(activated);
+      }
+    }
     return activatedNumbers;
   }
 }
@@ -71,18 +212,17 @@ export class BonusRegistry {
  */
 export function createDefaultBonusRegistry(): BonusRegistry {
   const registry = new BonusRegistry();
-  registry.register(new DoubleActivateBonus());
-  // 将来的に新しいボーナスをここに追加
-  // registry.register(new TripleActivateBonus());
+  registry.register(new UnlockRandomOneBonus());
+  registry.register(new RandomThreeWithMissBonus());
+  registry.register(new ActivateVerticalBonus());
+  registry.register(new ActivateHorizontalBonus());
+  registry.register(new ActivateCrossBonus());
   return registry;
 }
 
 /**
- * 13が出た時に使用するボーナスタイプ
+ * 13が出た時にボーナス予約するか
  */
-export function getBonusForNumber(number: number): BonusType | null {
-  if (number === FREE_CELL_NUMBER) {
-    return BonusType.DOUBLE_ACTIVATE;
-  }
-  return null;
+export function isBonusTriggerNumber(number: number): boolean {
+  return number === FREE_CELL_NUMBER;
 }
