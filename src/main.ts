@@ -208,10 +208,16 @@ class BingoUI {
       </div>
       ${latestBonusHtml}
       <div class="distribution">
-        <h3>スコア分布</h3>
+        <div class="distribution-header">
+          <h3>スコア分布</h3>
+          <button id="btn-export-score-csv" class="btn btn-export">CSV出力</button>
+        </div>
         ${this.renderDistribution(distribution, totalDraws)}
       </div>
     `;
+
+    const exportButton = this.statsElement.querySelector<HTMLButtonElement>('#btn-export-score-csv');
+    exportButton?.addEventListener('click', () => this.exportScoreDistributionCsv());
   }
 
   private renderLatestBonus(lastResult: DrawResult | null): string {
@@ -268,6 +274,29 @@ class BingoUI {
 
     return `<div class="distribution-chart">${bars}</div>`;
   }
+
+  private exportScoreDistributionCsv(): void {
+    const stats = this.game.getStatistics();
+    const csv = stats.getScoreDistributionCsv();
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = this.buildScoreDistributionFilename();
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+  }
+
+  private buildScoreDistributionFilename(): string {
+    const now = new Date();
+    const pad = (value: number) => value.toString().padStart(2, '0');
+    const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    return `score-distribution-${stamp}.csv`;
+  }
 }
 
 // アプリケーション開始
@@ -322,7 +351,10 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         </div>
       </div>
       <div class="distribution">
-        <h3>スコア分布</h3>
+        <div class="distribution-header">
+          <h3>スコア分布</h3>
+          <button id="btn-export-score-csv" class="btn btn-export">CSV出力</button>
+        </div>
         <div class="distribution-empty">データなし</div>
       </div>
     </div>

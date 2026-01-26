@@ -87,6 +87,17 @@ export class StatisticsManager {
     return entries.sort((a, b) => a[0] - b[0]);
   }
 
+  /** スコア分布をCSVで取得 */
+  getScoreDistributionCsv(): string {
+    const header = 'score,count,percentage';
+    const total = this.getTotalDraws();
+    const rows = this.getScoreDistribution().map(([score, count]) => {
+      const percentage = total > 0 ? ((count / total) * 100).toFixed(3) : '0';
+      return `${score},${count},${percentage}`;
+    });
+    return [header, ...rows].join('\n');
+  }
+
   /** 統計データを取得 */
   getStats(): TotalStatistics {
     return { ...this.stats };
