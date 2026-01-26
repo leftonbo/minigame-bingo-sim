@@ -25,10 +25,14 @@ class BingoUI {
   }
 
   private setupEventListeners(): void {
-    document.getElementById('btn-draw-1')?.addEventListener('click', () => this.handleDraw(1));
-    document.getElementById('btn-draw-10')?.addEventListener('click', () => this.handleDraw(10));
-    document.getElementById('btn-draw-100')?.addEventListener('click', () => this.handleDraw(100));
-    document.getElementById('btn-draw-1000')?.addEventListener('click', () => this.handleDraw(1000));
+    const drawSelect = document.getElementById('draw-count-select') as HTMLSelectElement | null;
+    document.getElementById('btn-draw')?.addEventListener('click', () => {
+      const count = drawSelect ? Number(drawSelect.value) : 1;
+      if (!Number.isFinite(count) || count <= 0) {
+        return;
+      }
+      this.handleDraw(count);
+    });
     document.getElementById('btn-reset')?.addEventListener('click', () => this.handleReset());
   }
 
@@ -315,10 +319,19 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           <span class="bonus-control-label">常時ボーナス</span>
           <select id="always-bonus-select" class="bonus-control-select"></select>
         </label>
-        <button id="btn-draw-1" class="btn btn-draw">抽選×1</button>
-        <button id="btn-draw-10" class="btn btn-draw">×10</button>
-        <button id="btn-draw-100" class="btn btn-draw">×100</button>
-        <button id="btn-draw-1000" class="btn btn-draw">×1000</button>
+        <label class="bonus-control">
+          <span class="bonus-control-label">抽選回数</span>
+          <select id="draw-count-select" class="bonus-control-select">
+            <option value="1">×1</option>
+            <option value="10">×10</option>
+            <option value="100">×100</option>
+            <option value="1000">×1000</option>
+            <option value="10000">×10000</option>
+            <option value="100000">×100000</option>
+            <option value="1000000">×1000000</option>
+          </select>
+        </label>
+        <button id="btn-draw" class="btn btn-draw">抽選</button>
         <button id="btn-reset" class="btn btn-reset">リセット</button>
       </div>
     </div>
