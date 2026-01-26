@@ -4,6 +4,7 @@
 
 import './style.css';
 import { BingoGame } from './game';
+import { getBonusTypeLabel } from './types';
 import type { CellState, DrawResult } from './types';
 
 class BingoUI {
@@ -93,10 +94,16 @@ class BingoUI {
     let infoHtml = '';
     
     if (result.bonusApplied) {
-      infoHtml += `<div class="result-info bonus">🎉 ボーナス適用！ ${result.activatedNumbers.join(', ')} がアクティブに</div>`;
+      const bonusName = result.bonusType
+        ? getBonusTypeLabel(result.bonusType)
+        : '不明';
+      infoHtml += `<div class="result-info bonus">🎉 ボーナス適用！「${bonusName}」で ${result.activatedNumbers.join(', ')} がアクティブに</div>`;
     }
     if (result.bonusQueued) {
-      infoHtml += `<div class="result-info bonus">✨ ボーナス発生！ 次回の抽選で適用</div>`;
+      const bonusName = result.bonusQueuedType
+        ? getBonusTypeLabel(result.bonusQueuedType)
+        : '不明';
+      infoHtml += `<div class="result-info bonus">✨ ボーナス獲得！「${bonusName}」を次回の抽選で適用</div>`;
     }
 
     if (!result.bonusQueued) {
@@ -139,6 +146,8 @@ class BingoUI {
     const totalScore = stats.getTotalScore();
     const avgActive = stats.getAverageActiveCount().toFixed(2);
     const distribution = stats.getScoreDistribution();
+    const lastResult = this.game.getLastResult();
+    const latestBonusHtml = this.renderLatestBonus(lastResult);
 
     this.statsElement.innerHTML = `
       <h2>📊 統計</h2>
@@ -168,9 +177,42 @@ class BingoUI {
           <div class="stat-value">${avgActive}</div>
         </div>
       </div>
+      ${latestBonusHtml}
       <div class="distribution">
         <h3>スコア分布</h3>
         ${this.renderDistribution(distribution, totalDraws)}
+      </div>
+    `;
+  }
+
+  private renderLatestBonus(lastResult: DrawResult | null): string {
+    if (!lastResult || (!lastResult.bonusQueued && !lastResult.bonusApplied)) {
+      return `
+        <div class="latest-bonus">
+          <div class="latest-bonus-label">最新ボーナス</div>
+          <div class="latest-bonus-value">-</div>
+        </div>
+      `;
+    }
+
+    const items: string[] = [];
+    if (lastResult.bonusQueued) {
+      const bonusName = lastResult.bonusQueuedType
+        ? getBonusTypeLabel(lastResult.bonusQueuedType)
+        : '不明';
+      items.push(`獲得: ${bonusName}`);
+    }
+    if (lastResult.bonusApplied) {
+      const bonusName = lastResult.bonusType
+        ? getBonusTypeLabel(lastResult.bonusType)
+        : '不明';
+      items.push(`適用: ${bonusName}`);
+    }
+
+    return `
+      <div class="latest-bonus">
+        <div class="latest-bonus-label">最新ボーナス</div>
+        <div class="latest-bonus-value">${items.join(' / ')}</div>
       </div>
     `;
   }

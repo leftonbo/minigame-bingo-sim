@@ -35,6 +35,18 @@ export const BonusType = {
 
 export type BonusType = typeof BonusType[keyof typeof BonusType];
 
+/** ボーナス表示名（短い日本語） */
+export const BONUS_TYPE_LABELS: Record<BonusType, string> = {
+  [BonusType.UNLOCK_RANDOM_ONE]: 'ランダム1',
+  [BonusType.RANDOM_THREE_WITH_MISS]: 'ランダム3',
+  [BonusType.ACTIVATE_VERTICAL]: '上下',
+  [BonusType.ACTIVATE_HORIZONTAL]: '左右',
+  [BonusType.ACTIVATE_CROSS]: '十字',
+} as const;
+
+export const getBonusTypeLabel = (type: BonusType): string =>
+  BONUS_TYPE_LABELS[type];
+
 /** 抽選結果 */
 export interface DrawResult {
   /** 抽選された数字 */
@@ -49,6 +61,8 @@ export interface DrawResult {
   bonusApplied: boolean;
   /** ボーナスの種類（適用された場合） */
   bonusType?: BonusType;
+  /** ボーナスの種類（発生した場合） */
+  bonusQueuedType?: BonusType;
   /** 成立したラインの数 */
   linesCompleted: number;
   /** 成立したラインに含まれるマスの数字 */

@@ -21,6 +21,7 @@ export class BingoGame {
   private statisticsManager: StatisticsManager;
   private lastResult: DrawResult | null = null;
   private pendingBonus: boolean = false;
+  private pendingBonusType: BonusType | null = null;
 
   constructor() {
     this.card = this.createInitialCard();
@@ -50,6 +51,7 @@ export class BingoGame {
     this.statisticsManager.reset();
     this.lastResult = null;
     this.pendingBonus = false;
+    this.pendingBonusType = null;
     this.updateReachStatus();
   }
 
@@ -81,14 +83,20 @@ export class BingoGame {
     let bonusQueued = false;
     let bonusApplied = false;
     let bonusType: BonusType | undefined;
+    let bonusQueuedType: BonusType | undefined;
+
+    const getRandomHandler = () => {
+      const handlers = this.bonusRegistry.getAll();
+      return handlers.length > 0
+        ? handlers[Math.floor(Math.random() * handlers.length)]
+        : undefined;
+    };
 
     // 予約済みボーナスを適用
     if (this.pendingBonus) {
-      const handlers = this.bonusRegistry.getAll();
-      const handler =
-        handlers.length > 0
-          ? handlers[Math.floor(Math.random() * handlers.length)]
-          : undefined;
+      const handler = this.pendingBonusType
+        ? this.bonusRegistry.get(this.pendingBonusType)
+        : getRandomHandler();
       if (handler) {
         const bonusActivated = handler.execute(this.card, {
           baseNumber: drawnNumber,
@@ -98,12 +106,18 @@ export class BingoGame {
         bonusType = handler.type;
       }
       this.pendingBonus = false;
+      this.pendingBonusType = null;
     }
 
     // ボーナス予約チェック（次回適用）
     if (isBonusTriggerNumber(drawnNumber)) {
-      this.pendingBonus = true;
-      bonusQueued = true;
+      const queuedHandler = getRandomHandler();
+      if (queuedHandler) {
+        this.pendingBonus = true;
+        this.pendingBonusType = queuedHandler.type;
+        bonusQueued = true;
+        bonusQueuedType = queuedHandler.type;
+      }
     } else {
       // 通常抽選
       const cell = this.card.find((c) => c.number === drawnNumber);
@@ -134,6 +148,7 @@ export class BingoGame {
       bonusQueued,
       bonusApplied,
       bonusType,
+      bonusQueuedType,
       linesCompleted,
       lineNumbers,
       score,
