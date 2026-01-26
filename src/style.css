@@ -181,6 +181,36 @@ h1 {
   justify-content: center;
 }
 
+.bonus-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--cell-inactive);
+  border-radius: 8px;
+}
+
+.bonus-control-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.bonus-control-select {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--cell-inactive);
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+.bonus-control-select:focus {
+  outline: none;
+  border-color: var(--accent-secondary);
+  box-shadow: 0 0 0 2px rgba(143, 148, 251, 0.2);
+}
+
 .btn {
   padding: 0.75rem 1.5rem;
   font-size: 1rem;

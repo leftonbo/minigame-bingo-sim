@@ -22,6 +22,7 @@ export class BingoGame {
   private lastResult: DrawResult | null = null;
   private pendingBonus: boolean = false;
   private pendingBonusType: BonusType | null = null;
+  private alwaysBonusType: BonusType | null = null;
 
   constructor() {
     this.card = this.createInitialCard();
@@ -70,6 +71,15 @@ export class BingoGame {
     return this.lastResult;
   }
 
+  /** 常時適用するボーナスを設定 */
+  setAlwaysBonusType(type: BonusType | null): void {
+    this.alwaysBonusType = type;
+    if (type) {
+      this.pendingBonus = false;
+      this.pendingBonusType = null;
+    }
+  }
+
   /** 1回の抽選を実行 */
   draw(): DrawResult {
     // 前回ライン成立したマスを非アクティブに戻す（フリーマス以外）
@@ -93,8 +103,18 @@ export class BingoGame {
         : undefined;
     };
 
-    // 予約済みボーナスを適用
-    if (this.pendingBonus) {
+    // 常時ボーナス or 予約済みボーナスを適用
+    if (this.alwaysBonusType) {
+      const handler = this.bonusRegistry.get(this.alwaysBonusType);
+      if (handler) {
+        const bonusActivated = handler.execute(this.card, {
+          baseNumber: drawnNumber,
+        });
+        activatedNumbers.push(...bonusActivated);
+        bonusApplied = true;
+        bonusType = handler.type;
+      }
+    } else if (this.pendingBonus) {
       const handler = this.pendingBonusType
         ? this.bonusRegistry.get(this.pendingBonusType)
         : getRandomHandler();
@@ -111,7 +131,7 @@ export class BingoGame {
     }
 
     // ボーナス予約チェック（次回適用）
-    if (isBonusTriggerNumber(drawnNumber)) {
+    if (!this.alwaysBonusType && isBonusTriggerNumber(drawnNumber)) {
       const queuedHandler = getRandomHandler();
       if (queuedHandler) {
         this.pendingBonus = true;
@@ -119,7 +139,7 @@ export class BingoGame {
         bonusQueued = true;
         bonusQueuedType = queuedHandler.type;
       }
-    } else {
+    } else if (!isBonusTriggerNumber(drawnNumber)) {
       // 通常抽選
       const cell = this.card.find((c) => c.number === drawnNumber);
       if (cell && !cell.isActive) {

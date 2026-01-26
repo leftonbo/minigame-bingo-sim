@@ -4,8 +4,8 @@
 
 import './style.css';
 import { BingoGame } from './game';
-import { getBonusTypeLabel } from './types';
-import type { CellState, DrawResult } from './types';
+import { BonusType, getBonusTypeLabel } from './types';
+import type { BonusType as BonusTypeValue, CellState, DrawResult } from './types';
 
 class BingoUI {
   private game: BingoGame;
@@ -20,6 +20,7 @@ class BingoUI {
     this.statsElement = document.getElementById('stats-section')!;
     
     this.setupEventListeners();
+    this.setupAlwaysBonusSelect();
     this.render();
   }
 
@@ -29,6 +30,34 @@ class BingoUI {
     document.getElementById('btn-draw-100')?.addEventListener('click', () => this.handleDraw(100));
     document.getElementById('btn-draw-1000')?.addEventListener('click', () => this.handleDraw(1000));
     document.getElementById('btn-reset')?.addEventListener('click', () => this.handleReset());
+  }
+
+  private setupAlwaysBonusSelect(): void {
+    const select = document.getElementById('always-bonus-select') as HTMLSelectElement | null;
+    if (!select) {
+      return;
+    }
+
+    const noneOption = document.createElement('option');
+    noneOption.value = '';
+    noneOption.textContent = 'なし';
+    select.appendChild(noneOption);
+
+    for (const bonusType of Object.values(BonusType)) {
+      const option = document.createElement('option');
+      option.value = bonusType;
+      option.textContent = getBonusTypeLabel(bonusType);
+      select.appendChild(option);
+    }
+
+    select.value = '';
+    select.addEventListener('change', () => {
+      const selected = select.value;
+      const nextType: BonusTypeValue | null = selected
+        ? (selected as BonusTypeValue)
+        : null;
+      this.game.setAlwaysBonusType(nextType);
+    });
   }
 
   private handleDraw(count: number): void {
@@ -253,6 +282,10 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <div class="result-info">抽選ボタンを押してください</div>
       </div>
       <div class="controls">
+        <label class="bonus-control">
+          <span class="bonus-control-label">常時ボーナス</span>
+          <select id="always-bonus-select" class="bonus-control-select"></select>
+        </label>
         <button id="btn-draw-1" class="btn btn-draw">抽選×1</button>
         <button id="btn-draw-10" class="btn btn-draw">×10</button>
         <button id="btn-draw-100" class="btn btn-draw">×100</button>
