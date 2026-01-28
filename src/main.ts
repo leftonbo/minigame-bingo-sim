@@ -21,6 +21,7 @@ class BingoUI {
     
     this.setupEventListeners();
     this.setupAlwaysBonusSelect();
+    this.setupBonusToggleControls();
     this.render();
   }
 
@@ -62,6 +63,44 @@ class BingoUI {
         : null;
       this.game.setAlwaysBonusType(nextType);
     });
+  }
+
+  private setupBonusToggleControls(): void {
+    const container = document.getElementById('bonus-toggle-list') as HTMLDivElement | null;
+    if (!container) {
+      return;
+    }
+
+    container.innerHTML = '';
+
+    const updateEnabledTypes = () => {
+      const checkedTypes = Array.from(
+        container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')
+      )
+        .filter((input) => input.checked && input.dataset.bonusType)
+        .map((input) => input.dataset.bonusType as BonusTypeValue);
+      this.game.setEnabledBonusTypes(checkedTypes);
+    };
+
+    for (const bonusType of Object.values(BonusType)) {
+      const label = document.createElement('label');
+      label.className = 'bonus-toggle-item';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = true;
+      checkbox.dataset.bonusType = bonusType;
+      checkbox.addEventListener('change', updateEnabledTypes);
+
+      const text = document.createElement('span');
+      text.textContent = getBonusTypeLabel(bonusType);
+
+      label.appendChild(checkbox);
+      label.appendChild(text);
+      container.appendChild(label);
+    }
+
+    updateEnabledTypes();
   }
 
   private handleDraw(count: number): void {
@@ -319,6 +358,10 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           <span class="bonus-control-label">常時ボーナス</span>
           <select id="always-bonus-select" class="bonus-control-select"></select>
         </label>
+        <div class="bonus-control bonus-toggle">
+          <span class="bonus-control-label">13ボーナス出現</span>
+          <div id="bonus-toggle-list" class="bonus-toggle-list"></div>
+        </div>
         <label class="bonus-control">
           <span class="bonus-control-label">抽選回数</span>
           <select id="draw-count-select" class="bonus-control-select">

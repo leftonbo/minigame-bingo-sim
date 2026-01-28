@@ -23,6 +23,7 @@ export class BingoGame {
   private pendingBonus: boolean = false;
   private pendingBonusType: BonusType | null = null;
   private alwaysBonusType: BonusType | null = null;
+  private enabledBonusTypes: Set<BonusType> = new Set(Object.values(BonusType));
 
   constructor() {
     this.card = this.createInitialCard();
@@ -80,6 +81,11 @@ export class BingoGame {
     }
   }
 
+  /** 13ボーナスの有効種別を設定 */
+  setEnabledBonusTypes(types: BonusType[]): void {
+    this.enabledBonusTypes = new Set(types);
+  }
+
   /** 1回の抽選を実行 */
   draw(): DrawResult {
     // 前回ライン成立したマスを非アクティブに戻す（フリーマス以外）
@@ -96,8 +102,13 @@ export class BingoGame {
     let bonusType: BonusType | undefined;
     let bonusQueuedType: BonusType | undefined;
 
+    const getEnabledHandlers = () =>
+      this.bonusRegistry.getAll().filter((handler) =>
+        this.enabledBonusTypes.has(handler.type)
+      );
+
     const getRandomHandler = () => {
-      const handlers = this.bonusRegistry.getAll();
+      const handlers = getEnabledHandlers();
       return handlers.length > 0
         ? handlers[Math.floor(Math.random() * handlers.length)]
         : undefined;
@@ -115,8 +126,11 @@ export class BingoGame {
         bonusType = handler.type;
       }
     } else if (this.pendingBonus) {
-      const handler = this.pendingBonusType
+      const pendingHandler = this.pendingBonusType
         ? this.bonusRegistry.get(this.pendingBonusType)
+        : undefined;
+      const handler = pendingHandler && this.enabledBonusTypes.has(pendingHandler.type)
+        ? pendingHandler
         : getRandomHandler();
       if (handler) {
         const bonusActivated = handler.execute(this.card, {
