@@ -31,6 +31,12 @@ export const BonusType = {
   ACTIVATE_HORIZONTAL: 'ACTIVATE_HORIZONTAL',
   /** 上下左右マスをアクティブ化 */
   ACTIVATE_CROSS: 'ACTIVATE_CROSS',
+  /** X字（斜め隣4マス）をアクティブ化 */
+  ACTIVATE_X_DIAGONAL: 'ACTIVATE_X_DIAGONAL',
+  /** 縦一列をアクティブ化 */
+  ACTIVATE_COLUMN_LINE: 'ACTIVATE_COLUMN_LINE',
+  /** 横一列をアクティブ化 */
+  ACTIVATE_ROW_LINE: 'ACTIVATE_ROW_LINE',
 } as const;
 
 export type BonusType = typeof BonusType[keyof typeof BonusType];
@@ -42,6 +48,9 @@ export const BONUS_TYPE_LABELS: Record<BonusType, string> = {
   [BonusType.ACTIVATE_VERTICAL]: '上下',
   [BonusType.ACTIVATE_HORIZONTAL]: '左右',
   [BonusType.ACTIVATE_CROSS]: '十字',
+  [BonusType.ACTIVATE_X_DIAGONAL]: 'X字',
+  [BonusType.ACTIVATE_COLUMN_LINE]: '縦一列',
+  [BonusType.ACTIVATE_ROW_LINE]: '横一列',
 } as const;
 
 export const getBonusTypeLabel = (type: BonusType): string =>
