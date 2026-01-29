@@ -16,6 +16,7 @@ export class StatisticsManager {
       totalDraws: 0,
       hitCount: 0,
       winCount: 0,
+      totalLines: 0,
       totalScore: 0,
       scoreDistribution: new Map<number, number>(),
       totalActiveCount: 0,
@@ -39,6 +40,7 @@ export class StatisticsManager {
       this.stats.winCount++;
     }
     
+    this.stats.totalLines += draw.linesCompleted;
     this.stats.totalScore += draw.score;
     this.stats.totalActiveCount += draw.activeCount;
     
@@ -58,6 +60,12 @@ export class StatisticsManager {
     if (this.stats.totalDraws === 0) return 0;
     return this.stats.winCount / this.stats.totalDraws;
   }
+  
+  /** 平均獲得ライン数を取得 */
+  getAverageLines(): number {
+    if (this.stats.totalDraws === 0) return 0;
+    return this.stats.totalLines / this.stats.totalDraws;
+  }
 
   /** 平均獲得スコアを取得 */
   getAverageScore(): number {
@@ -69,6 +77,11 @@ export class StatisticsManager {
   getAverageActiveCount(): number {
     if (this.stats.totalDraws === 0) return 0;
     return this.stats.totalActiveCount / this.stats.totalDraws;
+  }
+  
+  /** 総獲得ライン数を取得 */
+  getTotalLines(): number {
+    return this.stats.totalLines;
   }
 
   /** 総獲得スコアを取得 */

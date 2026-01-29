@@ -99,6 +99,8 @@ export interface DrawStatistics {
   isHit: boolean;
   /** 当たり（スコア獲得）したか */
   isWin: boolean;
+  /** 獲得ライン数 */
+  linesCompleted: number;
   /** 獲得スコア */
   score: number;
   /** 抽選後のアクティブなマスの数 */
@@ -113,6 +115,8 @@ export interface TotalStatistics {
   hitCount: number;
   /** 当たり数 */
   winCount: number;
+  /** 総獲得ライン数 */
+  totalLines: number;
   /** 総獲得スコア */
   totalScore: number;
   /** スコア分布 (スコア => 回数) */

@@ -183,7 +183,7 @@ export class BingoGame {
     const { linesCompleted, lineNumbers } = this.checkLines();
 
     // スコア計算
-    const score = linesCompleted;
+    const score = this.getScore(linesCompleted);
 
     // アクティブマス数をカウント
     const activeCount = this.card.filter((c) => c.isActive).length;
@@ -212,13 +212,30 @@ export class BingoGame {
     // 統計を記録
     const drawStats: DrawStatistics = {
       isHit: isDrawnHit || bonusNumbers.length > 0,
-      isWin: score > 0,
+      isWin: linesCompleted > 0,
+      linesCompleted,
       score,
       activeCount,
     };
     this.statisticsManager.record(drawStats);
 
     return result;
+  }
+  
+  /** 獲得ライン数からスコアを計算 */
+  private getScore(linesCompleted: number): number {
+    if (linesCompleted === 0) {
+      return 0;
+    } else if (linesCompleted === 1) {
+      return 1;
+    } else if (linesCompleted === 2) {
+      return 3;
+    } else if (linesCompleted === 3) {
+      return 10;
+    } else if (linesCompleted === 4) {
+      return 50;
+    }
+    return 200;
   }
 
   /** 複数回抽選を実行 */

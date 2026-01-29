@@ -202,7 +202,7 @@ class BingoUI {
     }
 
     if (result.linesCompleted > 0) {
-      infoHtml += `<div class="result-info win">🎊 ${result.linesCompleted}ライン成立！ +${result.score}点</div>`;
+      infoHtml += `<div class="result-info win">🎊 ${result.linesCompleted} ライン成立！ +${result.score} 点</div>`;
     }
 
     this.resultElement.innerHTML = `
@@ -213,14 +213,15 @@ class BingoUI {
   }
 
   private showMultipleResult(count: number, results: DrawResult[], lastResult: DrawResult): void {
+    const totalLines = results.reduce((sum, r) => sum + r.linesCompleted, 0);
     const totalScore = results.reduce((sum, r) => sum + r.score, 0);
     const totalHits = results.filter(r => r.isDrawnHit).length;
-    const totalWins = results.filter(r => r.score > 0).length;
+    const totalWins = results.filter(r => r.linesCompleted > 0).length;
 
     this.resultElement.innerHTML = `
       <h3>${count}回抽選完了</h3>
       <div class="result-number">${lastResult.drawnNumber}</div>
-      <div class="result-info">ヒット: ${totalHits}回 | 当たり: ${totalWins}回 | 獲得: ${totalScore}点</div>
+      <div class="result-info">ヒット: ${totalHits} 回 | 当たり: ${totalWins} 回 | 獲得ライン: ${totalLines} ライン | 獲得スコア: ${totalScore} 点</div>
     `;
   }
 
@@ -229,6 +230,8 @@ class BingoUI {
     const totalDraws = stats.getTotalDraws();
     const hitRate = (stats.getHitRate() * 100).toFixed(1);
     const winRate = (stats.getWinRate() * 100).toFixed(1);
+    const avgLines = stats.getAverageLines().toFixed(3);
+    const totalLines = stats.getTotalLines();
     const avgScore = stats.getAverageScore().toFixed(3);
     const totalScore = stats.getTotalScore();
     const avgActive = stats.getAverageActiveCount().toFixed(2);
@@ -252,6 +255,14 @@ class BingoUI {
           <div class="stat-value highlight">${winRate}%</div>
         </div>
         <div class="stat-item">
+          <div class="stat-label">平均獲得ライン</div>
+          <div class="stat-value">${avgLines}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">総獲得ライン</div>
+          <div class="stat-value highlight">${totalLines.toLocaleString()}</div>
+        </div>
+        <div class="stat-item">
           <div class="stat-label">平均獲得スコア</div>
           <div class="stat-value">${avgScore}</div>
         </div>
@@ -267,7 +278,7 @@ class BingoUI {
       ${latestBonusHtml}
       <div class="distribution">
         <div class="distribution-header">
-          <h3>スコア分布</h3>
+          <h3>獲得ライン分布</h3>
           <button id="btn-export-score-csv" class="btn btn-export">CSV出力</button>
         </div>
         ${this.renderDistribution(distribution, totalDraws)}
@@ -322,7 +333,7 @@ class BingoUI {
       const height = maxCount > 0 ? (count / maxCount) * maxHeight : 0;
       const percentage = total > 0 ? ((count / total) * 100).toFixed(3) : '0';
       return `
-        <div class="distribution-bar" style="height: ${height}px;" title="スコア${score}: ${count}回 (${percentage}%)">
+        <div class="distribution-bar" style="height: ${height}px;" title="${score} ライン: ${count} 回 (${percentage}%)">
           <span class="distribution-count">${count}</span>
           <span class="distribution-percent">${percentage}%</span>
           <span class="distribution-label">${score}</span>
@@ -418,11 +429,11 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           <div class="stat-value highlight">0%</div>
         </div>
         <div class="stat-item">
-          <div class="stat-label">平均獲得スコア</div>
+          <div class="stat-label">平均獲得ライン</div>
           <div class="stat-value">0</div>
         </div>
         <div class="stat-item">
-          <div class="stat-label">総獲得スコア</div>
+          <div class="stat-label">総獲得ライン</div>
           <div class="stat-value highlight">0</div>
         </div>
         <div class="stat-item">
@@ -432,7 +443,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       </div>
       <div class="distribution">
         <div class="distribution-header">
-          <h3>スコア分布</h3>
+          <h3>ライン分布</h3>
           <button id="btn-export-score-csv" class="btn btn-export">CSV出力</button>
         </div>
         <div class="distribution-empty">データなし</div>
