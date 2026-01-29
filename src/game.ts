@@ -242,25 +242,99 @@ export class BingoGame {
 
   /** 抽選ごとに盤面をランダム化 */
   private randomizeBoardActiveState(): void {
-    let targetActiveCount = Math.floor(Math.random() * 14);
-    for (const cell of this.card) {
-      cell.isActive = cell.isFree;
-      cell.isLine = false;
-      cell.isReach = false;
+    const targetActiveCount = 13;
+    const maxAttempts = 12;
+
+    const resetBoard = () => {
+      for (const cell of this.card) {
+        cell.isActive = cell.isFree;
+        cell.isLine = false;
+        cell.isReach = false;
+      }
+    };
+
+    const shuffle = (items: number[]) => {
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+      }
+    };
+
+    const fillRandomly = () => {
+      const pickableIndices = this.card
+        .map((cell, idx) => ({ cell, idx }))
+        .filter(({ cell }) => !cell.isFree)
+        .map(({ idx }) => idx);
+      shuffle(pickableIndices);
+
+      const activateCount = Math.max(0, Math.min(targetActiveCount - 1, pickableIndices.length));
+      let activated = 0;
+      for (const idx of pickableIndices) {
+        if (activated >= activateCount) {
+          break;
+        }
+        if (this.wouldCompleteLine(idx)) {
+          continue;
+        }
+        this.card[idx].isActive = true;
+        activated++;
+      }
+    };
+
+    const tryForceReach = (): boolean => {
+      const lineStates = ALL_LINES.map((line) => {
+        const active = line.filter((idx) => this.card[idx].isActive);
+        const inactive = line.filter((idx) => !this.card[idx].isActive);
+        return { line, active, inactive };
+      });
+
+      const trySwap = (activeCount: number, activationCount: number): boolean => {
+        const candidates = lineStates.filter(
+          ({ active, inactive }) => active.length === activeCount && inactive.length >= activationCount
+        );
+        const candidateIndices = candidates.map((_, idx) => idx);
+        shuffle(candidateIndices);
+        for (const candidateIndex of candidateIndices) {
+          const { line, inactive } = candidates[candidateIndex];
+          const outsideActives = this.card
+            .map((cell, idx) => ({ cell, idx }))
+            .filter(({ cell, idx }) => cell.isActive && !cell.isFree && !line.includes(idx))
+            .map(({ idx }) => idx);
+          if (outsideActives.length < activationCount) {
+            continue;
+          }
+          shuffle(outsideActives);
+          shuffle(inactive);
+
+          for (const idx of inactive.slice(0, activationCount)) {
+            this.card[idx].isActive = true;
+          }
+          for (const idx of outsideActives.slice(0, activationCount)) {
+            this.card[idx].isActive = false;
+          }
+          return true;
+        }
+        return false;
+      };
+
+      if (trySwap(3, 1)) {
+        return true;
+      }
+      return trySwap(2, 2);
+    };
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      resetBoard();
+      fillRandomly();
+      this.updateReachStatus();
+      if (this.hasReachCells()) {
+        return;
+      }
     }
 
-    const pickableCells = this.card.filter((cell) => !cell.isFree);
-    for (let i = pickableCells.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pickableCells[i], pickableCells[j]] = [pickableCells[j], pickableCells[i]];
+    if (tryForceReach()) {
+      this.updateReachStatus();
     }
-
-    const activateCount = Math.max(0, Math.min(targetActiveCount - 1, pickableCells.length));
-    for (const cell of pickableCells.slice(0, activateCount)) {
-      cell.isActive = true;
-    }
-
-    this.updateReachStatus();
   }
 
   /** ライン成立をチェック */
