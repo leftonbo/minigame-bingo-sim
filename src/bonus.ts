@@ -57,29 +57,22 @@ const getRowCol = (index: number): { row: number; col: number } => ({
 });
 
 /**
- * 未解放マスランダム1個埋める
+ * ランダムで X 個埋める
  */
-export class UnlockRandomOneBonus implements BonusHandler {
-  type = BonusType.UNLOCK_RANDOM_ONE;
+export class ActivateRandomBonusBase implements BonusHandler {
+  type: BonusType;
+  count: number;
 
-  execute(cells: CellState[], _context: BonusContext): number[] {
-    const inactiveCells = cells.filter(
-      (cell) => !cell.isActive && !cell.isFree
-    );
-    const targetCell = pickRandom(inactiveCells);
-    const activated = activateCell(targetCell);
-    return activated ? [activated] : [];
+  constructor(type: BonusType, count: number) {
+    this.type = type;
+    this.count = count;
   }
-}
-
-/**
- * ランダムで3個埋める（ハズレあり）
- */
-export class RandomThreeWithMissBonus implements BonusHandler {
-  type = BonusType.RANDOM_THREE_WITH_MISS;
 
   execute(cells: CellState[], _context: BonusContext): number[] {
-    const picked = shuffle(cells).slice(0, Math.min(3, cells.length));
+    const pickableCells = cells.filter(
+      (cell) => !cell.isFree
+    );
+    const picked = shuffle(pickableCells).slice(0, Math.min(this.count, pickableCells.length));
     const activatedNumbers: number[] = [];
     for (const cell of picked) {
       const activated = activateCell(cell);
@@ -88,6 +81,42 @@ export class RandomThreeWithMissBonus implements BonusHandler {
       }
     }
     return activatedNumbers;
+  }
+}
+
+/**
+ * ランダムで1個埋める
+ */
+export class ActivateRandomOneBonus extends ActivateRandomBonusBase {
+  constructor() {
+    super(BonusType.ACTIVATE_RANDOM_ONE, 1);
+  }
+}
+
+/**
+ * ランダムで2個埋める
+ */
+export class ActivateRandomTwoBonus extends ActivateRandomBonusBase {
+  constructor() {
+    super(BonusType.ACTIVATE_RANDOM_TWO, 2);
+  }
+}
+
+/**
+ * ランダムで4個埋める
+ */
+export class ActivateRandomFourBonus extends ActivateRandomBonusBase {
+  constructor() {
+    super(BonusType.ACTIVATE_RANDOM_FOUR, 4);
+  }
+}
+
+/**
+ * ランダムで8個埋める
+ */
+export class ActivateRandomEightBonus extends ActivateRandomBonusBase {
+  constructor() {
+    super(BonusType.ACTIVATE_RANDOM_EIGHT, 8);
   }
 }
 
@@ -224,6 +253,37 @@ export class ActivateXDiagonalBonus implements BonusHandler {
 }
 
 /**
+ * 周囲 8 マスを埋める
+ */
+export class ActivateBoxBonus implements BonusHandler {
+  type = BonusType.ACTIVATE_BOX;
+  
+  execute(cells: CellState[], context: BonusContext): number[] {
+    const baseIndex = getBaseIndex(context.baseNumber);
+    if (baseIndex === null) {
+      return [];
+    }
+    const targets: number[] = [];
+    for (let i = -1; i <= 1; i++) {
+      for (let j = -1; j <= 1; j++) {
+        if (i === 0 && j === 0) {
+          continue;
+        }
+        targets.push(baseIndex + i * GRID_SIZE + j);
+      }
+    }
+    const activatedNumbers: number[] = [];
+    for (const index of targets) {
+      const activated = activateCell(cells[index]);
+      if (activated !== null) {
+        activatedNumbers.push(activated);
+      }
+    }
+    return activatedNumbers;
+  }
+}
+
+/**
  * 縦一列を埋める
  */
 export class ActivateColumnLineBonus implements BonusHandler {
@@ -302,8 +362,11 @@ export class BonusRegistry {
  */
 export function createDefaultBonusRegistry(): BonusRegistry {
   const registry = new BonusRegistry();
-  registry.register(new UnlockRandomOneBonus());
-  registry.register(new RandomThreeWithMissBonus());
+  registry.register(new ActivateRandomOneBonus());
+  registry.register(new ActivateRandomTwoBonus());
+  registry.register(new ActivateRandomFourBonus());
+  registry.register(new ActivateRandomEightBonus());
+  registry.register(new ActivateBoxBonus());
   registry.register(new ActivateVerticalBonus());
   registry.register(new ActivateHorizontalBonus());
   registry.register(new ActivateCrossBonus());

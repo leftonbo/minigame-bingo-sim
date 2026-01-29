@@ -21,10 +21,14 @@ export type BingoCard = CellState[];
 
 /** ボーナスの種類 */
 export const BonusType = {
-  /** 未解放マスをランダムで1個アクティブ化 */
-  UNLOCK_RANDOM_ONE: 'UNLOCK_RANDOM_ONE',
-  /** ランダムで3個アクティブ化（ハズレあり） */
-  RANDOM_THREE_WITH_MISS: 'RANDOM_THREE_WITH_MISS',
+  /** ランダムで1個アクティブ化 */
+  ACTIVATE_RANDOM_ONE: 'ACTIVATE_RANDOM_ONE',
+  /** ランダムで2個アクティブ化 */
+  ACTIVATE_RANDOM_TWO: 'ACTIVATE_RANDOM_TWO',
+  /** ランダムで4個アクティブ化 */
+  ACTIVATE_RANDOM_FOUR: 'ACTIVATE_RANDOM_FOUR',
+  /** ランダムで8個アクティブ化 */
+  ACTIVATE_RANDOM_EIGHT: 'ACTIVATE_RANDOM_EIGHT',
   /** 上下マスをアクティブ化 */
   ACTIVATE_VERTICAL: 'ACTIVATE_VERTICAL',
   /** 左右マスをアクティブ化 */
@@ -33,6 +37,8 @@ export const BonusType = {
   ACTIVATE_CROSS: 'ACTIVATE_CROSS',
   /** X字（斜め隣4マス）をアクティブ化 */
   ACTIVATE_X_DIAGONAL: 'ACTIVATE_X_DIAGONAL',
+  /** 周囲 8 マスをアクティブ化 */
+  ACTIVATE_BOX: 'ACTIVATE_BOX',
   /** 縦一列をアクティブ化 */
   ACTIVATE_COLUMN_LINE: 'ACTIVATE_COLUMN_LINE',
   /** 横一列をアクティブ化 */
@@ -43,12 +49,15 @@ export type BonusType = typeof BonusType[keyof typeof BonusType];
 
 /** ボーナス表示名（短い日本語） */
 export const BONUS_TYPE_LABELS: Record<BonusType, string> = {
-  [BonusType.UNLOCK_RANDOM_ONE]: 'ランダム1',
-  [BonusType.RANDOM_THREE_WITH_MISS]: 'ランダム3',
+  [BonusType.ACTIVATE_RANDOM_ONE]: 'ランダム1',
+  [BonusType.ACTIVATE_RANDOM_TWO]: 'ランダム2',
+  [BonusType.ACTIVATE_RANDOM_FOUR]: 'ランダム4',
+  [BonusType.ACTIVATE_RANDOM_EIGHT]: 'ランダム8',
   [BonusType.ACTIVATE_VERTICAL]: '上下',
   [BonusType.ACTIVATE_HORIZONTAL]: '左右',
   [BonusType.ACTIVATE_CROSS]: '十字',
   [BonusType.ACTIVATE_X_DIAGONAL]: 'X字',
+  [BonusType.ACTIVATE_BOX]: '周囲8',
   [BonusType.ACTIVATE_COLUMN_LINE]: '縦一列',
   [BonusType.ACTIVATE_ROW_LINE]: '横一列',
 } as const;
