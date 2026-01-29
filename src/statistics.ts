@@ -2,8 +2,8 @@
  * 統計管理
  */
 
+import { BonusType } from './types';
 import type {
-  BonusType,
   BonusTypeStatistics,
   DrawStatistics,
   TotalStatistics,
@@ -129,19 +129,25 @@ export class StatisticsManager {
   /** ボーナス種類別統計をCSVで取得 */
   getBonusTypeStatsCsv(): string {
     const header = 'bonusType,appliedCount,avgActivated,avgLines,avgScore';
-    const rows = Array.from(this.stats.bonusTypeStats.entries()).map(([type, stats]) => {
-      const appliedCount = stats.appliedCount;
-      const avgActivated = appliedCount > 0 ? stats.totalActivated / appliedCount : 0;
-      const avgLines = appliedCount > 0 ? stats.totalLines / appliedCount : 0;
-      const avgScore = appliedCount > 0 ? stats.totalScore / appliedCount : 0;
-      return [
-        type,
-        appliedCount,
-        avgActivated,
-        avgLines,
-        avgScore,
-      ].join(',');
-    });
+    const rows = this.getOrderedBonusTypes()
+      .map((type) => {
+        const stats = this.stats.bonusTypeStats.get(type);
+        if (!stats) {
+          return null;
+        }
+        const appliedCount = stats.appliedCount;
+        const avgActivated = appliedCount > 0 ? stats.totalActivated / appliedCount : 0;
+        const avgLines = appliedCount > 0 ? stats.totalLines / appliedCount : 0;
+        const avgScore = appliedCount > 0 ? stats.totalScore / appliedCount : 0;
+        return [
+          type,
+          appliedCount,
+          avgActivated,
+          avgLines,
+          avgScore,
+        ].join(',');
+      })
+      .filter((row): row is string => row !== null);
     return [header, ...rows].join('\n');
   }
 
@@ -149,7 +155,11 @@ export class StatisticsManager {
   getBonusTypeLinesDistributionCsv(): string {
     const header = 'bonusType,lines,count,rate';
     const rows: string[] = [];
-    for (const [type, stats] of this.stats.bonusTypeStats.entries()) {
+    for (const type of this.getOrderedBonusTypes()) {
+      const stats = this.stats.bonusTypeStats.get(type);
+      if (!stats) {
+        continue;
+      }
       const appliedCount = stats.appliedCount;
       const entries = Array.from(stats.linesDistribution.entries()).sort(
         (a, b) => a[0] - b[0]
@@ -181,5 +191,9 @@ export class StatisticsManager {
     };
     this.stats.bonusTypeStats.set(type, created);
     return created;
+  }
+
+  private getOrderedBonusTypes(): BonusType[] {
+    return Object.values(BonusType);
   }
 }
