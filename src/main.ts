@@ -165,24 +165,27 @@ class BingoUI {
   private showResult(result: DrawResult): void {
     let infoHtml = '';
     
-    if (result.bonusApplied) {
-      const bonusName = result.bonusType
-        ? getBonusTypeLabel(result.bonusType)
-        : '不明';
-      infoHtml += `<div class="result-info bonus">🎉 ボーナス適用！「${bonusName}」で ${result.activatedNumbers.join(', ')} がアクティブに</div>`;
-    }
     if (result.bonusQueued) {
       const bonusName = result.bonusQueuedType
         ? getBonusTypeLabel(result.bonusQueuedType)
         : '不明';
       infoHtml += `<div class="result-info bonus">✨ ボーナス獲得！「${bonusName}」を次回の抽選で適用</div>`;
-    }
-
-    if (!result.bonusQueued) {
-      if (result.activatedNumbers.includes(result.drawnNumber)) {
-        infoHtml += `<div class="result-info">ヒット！ ${result.drawnNumber} がアクティブに</div>`;
+    } else {
+      if (result.isDrawnHit) {
+        infoHtml += `<div class="result-info bonus">ヒット！ ${result.drawnNumber} がアクティブに</div>`;
       } else {
         infoHtml += `<div class="result-info">ハズレ（${result.drawnNumber}は既にアクティブ）</div>`;
+      }
+    }
+
+    if (result.bonusApplied) {
+      const bonusName = result.bonusType
+        ? getBonusTypeLabel(result.bonusType)
+        : '不明';
+      if (result.bonusNumbers.length > 0) {
+        infoHtml += `<div class="result-info bonus">🎉「${bonusName}」適用！ ${result.bonusNumbers.join(', ')} がアクティブに</div>`;
+      } else {
+        infoHtml += `<div class="result-info">🎉「${bonusName}」適用！ ハズレ...</div>`;
       }
     }
 
@@ -199,7 +202,7 @@ class BingoUI {
 
   private showMultipleResult(count: number, results: DrawResult[], lastResult: DrawResult): void {
     const totalScore = results.reduce((sum, r) => sum + r.score, 0);
-    const totalHits = results.filter(r => r.isHit).length;
+    const totalHits = results.filter(r => r.isDrawnHit).length;
     const totalWins = results.filter(r => r.score > 0).length;
 
     this.resultElement.innerHTML = `

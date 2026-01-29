@@ -69,8 +69,10 @@ export const getBonusTypeLabel = (type: BonusType): string =>
 export interface DrawResult {
   /** 抽選された数字 */
   drawnNumber: number;
-  /** ヒットしたか（1個でもアクティブ化したか） */
-  isHit: boolean;
+  /** 抽選された数字がヒットしたか */
+  isDrawnHit: boolean;
+  /** ボーナスの対象になったマスの数字 */
+  bonusNumbers: number[];
   /** アクティブ化したマスの数字 */
   activatedNumbers: number[];
   /** ボーナス発生（次回適用予約）したか */

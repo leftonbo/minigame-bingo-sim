@@ -22,13 +22,6 @@ export interface BonusContext {
 
 const GRID_SIZE = 5;
 
-const pickRandom = <T>(items: T[]): T | undefined => {
-  if (items.length === 0) {
-    return undefined;
-  }
-  return items[Math.floor(Math.random() * items.length)];
-};
-
 const shuffle = <T>(items: T[]): T[] =>
   [...items].sort(() => Math.random() - 0.5);
 
