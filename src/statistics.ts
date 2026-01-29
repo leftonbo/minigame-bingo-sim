@@ -18,7 +18,7 @@ export class StatisticsManager {
       winCount: 0,
       totalLines: 0,
       totalScore: 0,
-      scoreDistribution: new Map<number, number>(),
+      linesDistribution: new Map<number, number>(),
       totalActiveCount: 0,
     };
   }
@@ -44,9 +44,9 @@ export class StatisticsManager {
     this.stats.totalScore += draw.score;
     this.stats.totalActiveCount += draw.activeCount;
     
-    // スコア分布を更新
-    const currentCount = this.stats.scoreDistribution.get(draw.score) || 0;
-    this.stats.scoreDistribution.set(draw.score, currentCount + 1);
+    // 獲得ライン分布を更新
+    const currentCount = this.stats.linesDistribution.get(draw.linesCompleted) || 0;
+    this.stats.linesDistribution.set(draw.linesCompleted, currentCount + 1);
   }
 
   /** ヒット率を取得 */
@@ -94,19 +94,17 @@ export class StatisticsManager {
     return this.stats.totalDraws;
   }
 
-  /** スコア分布を取得（ソート済み） */
-  getScoreDistribution(): [number, number][] {
-    const entries = Array.from(this.stats.scoreDistribution.entries());
+  /** 獲得ライン分布を取得（ソート済み） */
+  getLinesDistribution(): [number, number][] {
+    const entries = Array.from(this.stats.linesDistribution.entries());
     return entries.sort((a, b) => a[0] - b[0]);
   }
 
   /** スコア分布をCSVで取得 */
-  getScoreDistributionCsv(): string {
-    const header = 'score,count,percentage';
-    const total = this.getTotalDraws();
-    const rows = this.getScoreDistribution().map(([score, count]) => {
-      const percentage = total > 0 ? ((count / total) * 100).toFixed(3) : '0';
-      return `${score},${count},${percentage}`;
+  getLinesDistributionCsv(): string {
+    const header = 'score,count';
+    const rows = this.getLinesDistribution().map(([lines, count]) => {
+      return `${lines},${count}`;
     });
     return [header, ...rows].join('\n');
   }

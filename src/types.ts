@@ -120,7 +120,7 @@ export interface TotalStatistics {
   /** 総獲得スコア */
   totalScore: number;
   /** スコア分布 (スコア => 回数) */
-  scoreDistribution: Map<number, number>;
+  linesDistribution: Map<number, number>;
   /** 抽選後アクティブマス数の合計 */
   totalActiveCount: number;
 }

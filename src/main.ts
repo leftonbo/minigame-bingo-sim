@@ -235,7 +235,7 @@ class BingoUI {
     const avgScore = stats.getAverageScore().toFixed(3);
     const totalScore = stats.getTotalScore();
     const avgActive = stats.getAverageActiveCount().toFixed(2);
-    const distribution = stats.getScoreDistribution();
+    const linesDistribution = stats.getLinesDistribution();
     const lastResult = this.game.getLastResult();
     const latestBonusHtml = this.renderLatestBonus(lastResult);
 
@@ -279,14 +279,14 @@ class BingoUI {
       <div class="distribution">
         <div class="distribution-header">
           <h3>獲得ライン分布</h3>
-          <button id="btn-export-score-csv" class="btn btn-export">CSV出力</button>
+          <button id="btn-export-lines-csv" class="btn btn-export">CSV出力</button>
         </div>
-        ${this.renderDistribution(distribution, totalDraws)}
+        ${this.renderDistribution(linesDistribution, totalDraws)}
       </div>
     `;
 
-    const exportButton = this.statsElement.querySelector<HTMLButtonElement>('#btn-export-score-csv');
-    exportButton?.addEventListener('click', () => this.exportScoreDistributionCsv());
+    const exportButton = this.statsElement.querySelector<HTMLButtonElement>('#btn-export-lines-csv');
+    exportButton?.addEventListener('click', () => this.exportLinesDistributionCsv());
   }
 
   private renderLatestBonus(lastResult: DrawResult | null): string {
@@ -344,15 +344,15 @@ class BingoUI {
     return `<div class="distribution-chart">${bars}</div>`;
   }
 
-  private exportScoreDistributionCsv(): void {
+  private exportLinesDistributionCsv(): void {
     const stats = this.game.getStatistics();
-    const csv = stats.getScoreDistributionCsv();
+    const csv = stats.getLinesDistributionCsv();
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement('a');
     link.href = url;
-    link.download = this.buildScoreDistributionFilename();
+    link.download = this.buildLinesDistributionFilename();
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -360,11 +360,11 @@ class BingoUI {
     URL.revokeObjectURL(url);
   }
 
-  private buildScoreDistributionFilename(): string {
+  private buildLinesDistributionFilename(): string {
     const now = new Date();
     const pad = (value: number) => value.toString().padStart(2, '0');
     const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-    return `score-distribution-${stamp}.csv`;
+    return `lines-distribution-${stamp}.csv`;
   }
 }
 
@@ -444,7 +444,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <div class="distribution">
         <div class="distribution-header">
           <h3>ライン分布</h3>
-          <button id="btn-export-score-csv" class="btn btn-export">CSV出力</button>
+          <button id="btn-export-lines-csv" class="btn btn-export">CSV出力</button>
         </div>
         <div class="distribution-empty">データなし</div>
       </div>
