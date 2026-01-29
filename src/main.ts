@@ -22,6 +22,7 @@ class BingoUI {
     this.setupEventListeners();
     this.setupAlwaysBonusSelect();
     this.setupBonusToggleControls();
+    this.setupRandomizeBoardToggle();
     this.render();
   }
 
@@ -101,6 +102,17 @@ class BingoUI {
     }
 
     updateEnabledTypes();
+  }
+
+  private setupRandomizeBoardToggle(): void {
+    const toggle = document.getElementById('randomize-board-toggle') as HTMLInputElement | null;
+    if (!toggle) {
+      return;
+    }
+
+    toggle.addEventListener('change', () => {
+      this.game.setRandomizeBoardEachDraw(toggle.checked);
+    });
   }
 
   private handleDraw(count: number): void {
@@ -356,7 +368,28 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <div class="result-number">-</div>
         <div class="result-info">抽選ボタンを押してください</div>
       </div>
-      <div class="controls">
+      <div class="settings-section">
+        <h3>抽選設定</h3>
+        <div class="controls settings-controls">
+          <label class="bonus-control">
+            <span class="bonus-control-label">抽選回数</span>
+            <select id="draw-count-select" class="bonus-control-select">
+              <option value="1">×1</option>
+              <option value="10">×10</option>
+              <option value="100">×100</option>
+              <option value="1000">×1000</option>
+              <option value="10000">×10000</option>
+              <option value="100000">×100000</option>
+              <option value="1000000">×1000000</option>
+            </select>
+          </label>
+          <label class="bonus-control toggle-control">
+            <input id="randomize-board-toggle" type="checkbox" />
+            <span class="bonus-control-label">1回ごとに盤面をランダムにする</span>
+          </label>
+        </div>
+      </div>
+      <div class="controls action-controls">
         <label class="bonus-control">
           <span class="bonus-control-label">常時ボーナス</span>
           <select id="always-bonus-select" class="bonus-control-select"></select>
@@ -365,18 +398,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
           <span class="bonus-control-label">13ボーナス出現</span>
           <div id="bonus-toggle-list" class="bonus-toggle-list"></div>
         </div>
-        <label class="bonus-control">
-          <span class="bonus-control-label">抽選回数</span>
-          <select id="draw-count-select" class="bonus-control-select">
-            <option value="1">×1</option>
-            <option value="10">×10</option>
-            <option value="100">×100</option>
-            <option value="1000">×1000</option>
-            <option value="10000">×10000</option>
-            <option value="100000">×100000</option>
-            <option value="1000000">×1000000</option>
-          </select>
-        </label>
         <button id="btn-draw" class="btn btn-draw">抽選</button>
         <button id="btn-reset" class="btn btn-reset">リセット</button>
       </div>

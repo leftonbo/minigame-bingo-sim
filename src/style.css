@@ -181,6 +181,31 @@ h1 {
   justify-content: center;
 }
 
+.settings-section {
+  width: 100%;
+  max-width: 540px;
+  padding: 1rem;
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-glow);
+}
+
+.settings-section h3 {
+  font-size: 0.95rem;
+  color: var(--accent-secondary);
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--cell-inactive);
+  padding-bottom: 0.4rem;
+}
+
+.settings-controls {
+  justify-content: flex-start;
+}
+
+.toggle-control input {
+  accent-color: var(--accent-secondary);
+}
+
 .bonus-control {
   display: flex;
   align-items: center;

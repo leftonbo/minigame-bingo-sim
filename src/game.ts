@@ -24,6 +24,7 @@ export class BingoGame {
   private pendingBonusType: BonusType | null = null;
   private alwaysBonusType: BonusType | null = null;
   private enabledBonusTypes: Set<BonusType> = new Set(Object.values(BonusType));
+  private randomizeBoardEachDraw: boolean = false;
 
   constructor() {
     this.card = this.createInitialCard();
@@ -81,6 +82,11 @@ export class BingoGame {
     }
   }
 
+  /** 抽選ごとに盤面をランダム化するか */
+  setRandomizeBoardEachDraw(enabled: boolean): void {
+    this.randomizeBoardEachDraw = enabled;
+  }
+
   /** 13ボーナスの有効種別を設定 */
   setEnabledBonusTypes(types: BonusType[]): void {
     this.enabledBonusTypes = new Set(types);
@@ -88,9 +94,13 @@ export class BingoGame {
 
   /** 1回の抽選を実行 */
   draw(): DrawResult {
-    // 前回ライン成立したマスを非アクティブに戻す（フリーマス以外）
-    this.resetLineStatus();
-    this.ensureReachBeforeDraw();
+    if (this.randomizeBoardEachDraw) {
+      this.randomizeBoardActiveState();
+    } else {
+      // 前回ライン成立したマスを非アクティブに戻す（フリーマス以外）
+      this.resetLineStatus();
+      this.ensureReachBeforeDraw();
+    }
 
     // 1～25からランダムに抽選
     const drawnNumber = Math.floor(Math.random() * 25) + 1;
@@ -228,6 +238,29 @@ export class BingoGame {
       }
       cell.isLine = false;
     }
+  }
+
+  /** 抽選ごとに盤面をランダム化 */
+  private randomizeBoardActiveState(): void {
+    let targetActiveCount = Math.floor(Math.random() * 14);
+    for (const cell of this.card) {
+      cell.isActive = cell.isFree;
+      cell.isLine = false;
+      cell.isReach = false;
+    }
+
+    const pickableCells = this.card.filter((cell) => !cell.isFree);
+    for (let i = pickableCells.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pickableCells[i], pickableCells[j]] = [pickableCells[j], pickableCells[i]];
+    }
+
+    const activateCount = Math.max(0, Math.min(targetActiveCount - 1, pickableCells.length));
+    for (const cell of pickableCells.slice(0, activateCount)) {
+      cell.isActive = true;
+    }
+
+    this.updateReachStatus();
   }
 
   /** ライン成立をチェック */
