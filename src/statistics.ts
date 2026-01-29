@@ -128,7 +128,7 @@ export class StatisticsManager {
 
   /** ボーナス種類別統計をCSVで取得 */
   getBonusTypeStatsCsv(): string {
-    const header = 'bonusType,appliedCount,avgActivated,avgLines,avgScore';
+    const header = 'bonusType,appliedCount,avgActivated,avgLines,avgScore,cntLine0,cntLine1,cntLine2,cntLine3,cntLine4,cntLine5orMore';
     const rows = this.getOrderedBonusTypes()
       .map((type) => {
         const stats = this.stats.bonusTypeStats.get(type);
@@ -139,16 +139,36 @@ export class StatisticsManager {
         const avgActivated = appliedCount > 0 ? stats.totalActivated / appliedCount : 0;
         const avgLines = appliedCount > 0 ? stats.totalLines / appliedCount : 0;
         const avgScore = appliedCount > 0 ? stats.totalScore / appliedCount : 0;
+        const cntLine0 = stats.linesDistribution.get(0) || 0;
+        const cntLine1 = stats.linesDistribution.get(1) || 0;
+        const cntLine2 = stats.linesDistribution.get(2) || 0;
+        const cntLine3 = stats.linesDistribution.get(3) || 0;
+        const cntLine4 = stats.linesDistribution.get(4) || 0;
+        const cntLine5orMore = this.getDistributionCountSameOrMore(stats.linesDistribution, 5);
         return [
           type,
           appliedCount,
           avgActivated,
           avgLines,
           avgScore,
+          cntLine0,
+          cntLine1,
+          cntLine2,
+          cntLine3,
+          cntLine4,
+          cntLine5orMore,
         ].join(',');
       })
       .filter((row): row is string => row !== null);
     return [header, ...rows].join('\n');
+  }
+  
+  /** ライン数分布から指定したライン数以上の分布数を取得 */
+  private getDistributionCountSameOrMore(distribution: Map<number, number>, threshold: number): number {
+    return Array
+      .from(distribution.entries())
+      .filter(([lines, _count]) => lines >= threshold)
+      .reduce((sum, [_lines, count]) => sum + count, 0);
   }
 
   /** ボーナス適用時のライン数分布をCSVで取得 */
