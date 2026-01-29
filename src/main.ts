@@ -443,6 +443,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
               <option value="10000">×10000</option>
               <option value="100000">×100000</option>
               <option value="1000000">×1000000</option>
+              <option value="10000000">×10000000</option>
             </select>
           </label>
           <label class="bonus-control toggle-control">
