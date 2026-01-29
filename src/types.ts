@@ -99,12 +99,32 @@ export interface DrawStatistics {
   isHit: boolean;
   /** 当たり（スコア獲得）したか */
   isWin: boolean;
+  /** ボーナスを適用したか */
+  bonusApplied: boolean;
+  /** ボーナスの種類（適用された場合） */
+  bonusType?: BonusType;
+  /** ボーナスでアクティブ化したマス数 */
+  bonusActivatedCount: number;
   /** 獲得ライン数 */
   linesCompleted: number;
   /** 獲得スコア */
   score: number;
   /** 抽選後のアクティブなマスの数 */
   activeCount: number;
+}
+
+/** ボーナス種類別統計 */
+export interface BonusTypeStatistics {
+  /** 適用回数 */
+  appliedCount: number;
+  /** ボーナスでアクティブ化したマス数の合計 */
+  totalActivated: number;
+  /** 獲得ライン数の合計 */
+  totalLines: number;
+  /** 獲得スコアの合計 */
+  totalScore: number;
+  /** ライン数分布 (ライン数 => 回数) */
+  linesDistribution: Map<number, number>;
 }
 
 /** 累計統計 */
@@ -123,6 +143,8 @@ export interface TotalStatistics {
   linesDistribution: Map<number, number>;
   /** 抽選後アクティブマス数の合計 */
   totalActiveCount: number;
+  /** ボーナス種類別の統計 */
+  bonusTypeStats: Map<BonusType, BonusTypeStatistics>;
 }
 
 /** ライン定義（マスのインデックス配列） */

@@ -283,10 +283,23 @@ class BingoUI {
         </div>
         ${this.renderDistribution(linesDistribution, totalDraws)}
       </div>
+      <div class="distribution">
+        <div class="distribution-header">
+          <h3>ボーナス統計CSV</h3>
+          <div class="distribution-actions">
+            <button id="btn-export-bonus-stats-csv" class="btn btn-export">種類別統計</button>
+            <button id="btn-export-bonus-lines-csv" class="btn btn-export">ライン分布</button>
+          </div>
+        </div>
+      </div>
     `;
 
     const exportButton = this.statsElement.querySelector<HTMLButtonElement>('#btn-export-lines-csv');
     exportButton?.addEventListener('click', () => this.exportLinesDistributionCsv());
+    const exportBonusStatsButton = this.statsElement.querySelector<HTMLButtonElement>('#btn-export-bonus-stats-csv');
+    exportBonusStatsButton?.addEventListener('click', () => this.exportBonusTypeStatsCsv());
+    const exportBonusLinesButton = this.statsElement.querySelector<HTMLButtonElement>('#btn-export-bonus-lines-csv');
+    exportBonusLinesButton?.addEventListener('click', () => this.exportBonusTypeLinesDistributionCsv());
   }
 
   private renderLatestBonus(lastResult: DrawResult | null): string {
@@ -360,11 +373,49 @@ class BingoUI {
     URL.revokeObjectURL(url);
   }
 
+  private exportBonusTypeStatsCsv(): void {
+    const stats = this.game.getStatistics();
+    const csv = stats.getBonusTypeStatsCsv();
+    this.downloadCsv(csv, this.buildBonusTypeStatsFilename());
+  }
+
+  private exportBonusTypeLinesDistributionCsv(): void {
+    const stats = this.game.getStatistics();
+    const csv = stats.getBonusTypeLinesDistributionCsv();
+    this.downloadCsv(csv, this.buildBonusTypeLinesDistributionFilename());
+  }
+
+  private downloadCsv(csv: string, filename: string): void {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(url);
+  }
+
   private buildLinesDistributionFilename(): string {
+    return this.buildCsvFilename('lines-distribution');
+  }
+
+  private buildBonusTypeStatsFilename(): string {
+    return this.buildCsvFilename('bonus-type-stats');
+  }
+
+  private buildBonusTypeLinesDistributionFilename(): string {
+    return this.buildCsvFilename('bonus-type-lines');
+  }
+
+  private buildCsvFilename(prefix: string): string {
     const now = new Date();
     const pad = (value: number) => value.toString().padStart(2, '0');
     const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-    return `lines-distribution-${stamp}.csv`;
+    return `${prefix}-${stamp}.csv`;
   }
 }
 

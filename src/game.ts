@@ -213,6 +213,9 @@ export class BingoGame {
     const drawStats: DrawStatistics = {
       isHit: isDrawnHit || bonusNumbers.length > 0,
       isWin: linesCompleted > 0,
+      bonusApplied,
+      bonusType: bonusApplied ? bonusType : undefined,
+      bonusActivatedCount: bonusApplied ? bonusNumbers.length : 0,
       linesCompleted,
       score,
       activeCount,

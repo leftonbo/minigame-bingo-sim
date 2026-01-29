@@ -2,7 +2,12 @@
  * 統計管理
  */
 
-import type { DrawStatistics, TotalStatistics } from './types';
+import type {
+  BonusType,
+  BonusTypeStatistics,
+  DrawStatistics,
+  TotalStatistics,
+} from './types';
 
 export class StatisticsManager {
   private stats: TotalStatistics;
@@ -20,6 +25,7 @@ export class StatisticsManager {
       totalScore: 0,
       linesDistribution: new Map<number, number>(),
       totalActiveCount: 0,
+      bonusTypeStats: new Map<BonusType, BonusTypeStatistics>(),
     };
   }
 
@@ -47,6 +53,17 @@ export class StatisticsManager {
     // 獲得ライン分布を更新
     const currentCount = this.stats.linesDistribution.get(draw.linesCompleted) || 0;
     this.stats.linesDistribution.set(draw.linesCompleted, currentCount + 1);
+
+    if (draw.bonusApplied && draw.bonusType) {
+      const bonusStats = this.getOrCreateBonusStats(draw.bonusType);
+      bonusStats.appliedCount++;
+      bonusStats.totalActivated += draw.bonusActivatedCount;
+      bonusStats.totalLines += draw.linesCompleted;
+      bonusStats.totalScore += draw.score;
+      const bonusLinesCount =
+        bonusStats.linesDistribution.get(draw.linesCompleted) || 0;
+      bonusStats.linesDistribution.set(draw.linesCompleted, bonusLinesCount + 1);
+    }
   }
 
   /** ヒット率を取得 */
@@ -109,8 +126,60 @@ export class StatisticsManager {
     return [header, ...rows].join('\n');
   }
 
+  /** ボーナス種類別統計をCSVで取得 */
+  getBonusTypeStatsCsv(): string {
+    const header = 'bonusType,appliedCount,avgActivated,avgLines,avgScore';
+    const rows = Array.from(this.stats.bonusTypeStats.entries()).map(([type, stats]) => {
+      const appliedCount = stats.appliedCount;
+      const avgActivated = appliedCount > 0 ? stats.totalActivated / appliedCount : 0;
+      const avgLines = appliedCount > 0 ? stats.totalLines / appliedCount : 0;
+      const avgScore = appliedCount > 0 ? stats.totalScore / appliedCount : 0;
+      return [
+        type,
+        appliedCount,
+        avgActivated,
+        avgLines,
+        avgScore,
+      ].join(',');
+    });
+    return [header, ...rows].join('\n');
+  }
+
+  /** ボーナス適用時のライン数分布をCSVで取得 */
+  getBonusTypeLinesDistributionCsv(): string {
+    const header = 'bonusType,lines,count,rate';
+    const rows: string[] = [];
+    for (const [type, stats] of this.stats.bonusTypeStats.entries()) {
+      const appliedCount = stats.appliedCount;
+      const entries = Array.from(stats.linesDistribution.entries()).sort(
+        (a, b) => a[0] - b[0]
+      );
+      for (const [lines, count] of entries) {
+        const rate = appliedCount > 0 ? count / appliedCount : 0;
+        rows.push([type, lines, count, rate].join(','));
+      }
+    }
+    return [header, ...rows].join('\n');
+  }
+
   /** 統計データを取得 */
   getStats(): TotalStatistics {
     return { ...this.stats };
+  }
+
+  private getOrCreateBonusStats(type: BonusType): BonusTypeStatistics {
+    const current = this.stats.bonusTypeStats.get(type);
+    if (current) {
+      return current;
+    }
+    const created: BonusTypeStatistics = {
+      appliedCount: 0,
+      totalActivated: 0,
+      totalLines: 0,
+      totalScore: 0,
+      linesDistribution: new Map<number, number>(),
+    };
+    this.stats.bonusTypeStats.set(type, created);
+    return created;
   }
 }
