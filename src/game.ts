@@ -22,6 +22,7 @@ export class BingoGame {
   private lastResult: DrawResult | null = null;
   private pendingBonus: boolean = false;
   private pendingBonusType: BonusType | null = null;
+  private alwaysBonusMode: 'none' | 'disabled' | 'random' | 'fixed' = 'none';
   private alwaysBonusType: BonusType | null = null;
   private enabledBonusTypes: Set<BonusType> = new Set(Object.values(BonusType));
   private randomizeBoardEachDraw: boolean = false;
@@ -73,10 +74,14 @@ export class BingoGame {
     return this.lastResult;
   }
 
-  /** 常時適用するボーナスを設定 */
-  setAlwaysBonusType(type: BonusType | null): void {
-    this.alwaysBonusType = type;
-    if (type) {
+  /** 常時ボーナスの設定 */
+  setAlwaysBonusSetting(
+    mode: 'none' | 'disabled' | 'random' | 'fixed',
+    type: BonusType | null = null
+  ): void {
+    this.alwaysBonusMode = mode;
+    this.alwaysBonusType = mode === 'fixed' ? type : null;
+    if (mode !== 'none') {
       this.pendingBonus = false;
       this.pendingBonusType = null;
     }
@@ -125,8 +130,12 @@ export class BingoGame {
         : undefined;
     };
 
+    const isAlwaysDisabled = this.alwaysBonusMode === 'disabled';
+    const isAlwaysRandom = this.alwaysBonusMode === 'random';
+    const isAlwaysFixed = this.alwaysBonusMode === 'fixed';
+
     // ボーナス予約チェック（次回適用）
-    if (!this.alwaysBonusType && isBonusTriggerNumber(drawnNumber)) {
+    if (!isAlwaysDisabled && !isAlwaysRandom && !isAlwaysFixed && isBonusTriggerNumber(drawnNumber)) {
       const queuedHandler = getRandomHandler();
       if (queuedHandler) {
         bonusQueued = true;
@@ -143,8 +152,10 @@ export class BingoGame {
     }
 
     // 常時ボーナス or 予約済みボーナスを適用
-    if (this.alwaysBonusType) {
-      const handler = this.bonusRegistry.get(this.alwaysBonusType);
+    if (isAlwaysFixed) {
+      const handler = this.alwaysBonusType
+        ? this.bonusRegistry.get(this.alwaysBonusType)
+        : undefined;
       if (handler) {
         const bonusActivated = handler.execute(this.card, {
           baseNumber: drawnNumber,
@@ -154,7 +165,18 @@ export class BingoGame {
         bonusApplied = true;
         bonusType = handler.type;
       }
-    } else if (this.pendingBonus) {
+    } else if (isAlwaysRandom) {
+      const handler = getRandomHandler();
+      if (handler) {
+        const bonusActivated = handler.execute(this.card, {
+          baseNumber: drawnNumber,
+        });
+        bonusNumbers.push(...bonusActivated);
+        activatedNumbers.push(...bonusActivated);
+        bonusApplied = true;
+        bonusType = handler.type;
+      }
+    } else if (!isAlwaysDisabled && this.pendingBonus) {
       const pendingHandler = this.pendingBonusType
         ? this.bonusRegistry.get(this.pendingBonusType)
         : undefined;

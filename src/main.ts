@@ -44,10 +44,22 @@ class BingoUI {
       return;
     }
 
+    type AlwaysBonusSelectValue = '' | 'disabled' | 'random' | BonusTypeValue;
+
     const noneOption = document.createElement('option');
     noneOption.value = '';
     noneOption.textContent = 'なし';
     select.appendChild(noneOption);
+
+    const disableOption = document.createElement('option');
+    disableOption.value = 'disabled';
+    disableOption.textContent = '常に無効化';
+    select.appendChild(disableOption);
+
+    const randomOption = document.createElement('option');
+    randomOption.value = 'random';
+    randomOption.textContent = 'ランダムボーナス';
+    select.appendChild(randomOption);
 
     for (const bonusType of Object.values(BonusType)) {
       const option = document.createElement('option');
@@ -58,11 +70,20 @@ class BingoUI {
 
     select.value = '';
     select.addEventListener('change', () => {
-      const selected = select.value;
-      const nextType: BonusTypeValue | null = selected
-        ? (selected as BonusTypeValue)
-        : null;
-      this.game.setAlwaysBonusType(nextType);
+      const selected = select.value as AlwaysBonusSelectValue;
+      if (selected === '') {
+        this.game.setAlwaysBonusSetting('none');
+        return;
+      }
+      if (selected === 'disabled') {
+        this.game.setAlwaysBonusSetting('disabled');
+        return;
+      }
+      if (selected === 'random') {
+        this.game.setAlwaysBonusSetting('random');
+        return;
+      }
+      this.game.setAlwaysBonusSetting('fixed', selected);
     });
   }
 
