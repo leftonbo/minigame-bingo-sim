@@ -49,6 +49,12 @@ const getRowCol = (index: number): { row: number; col: number } => ({
   col: Math.floor(index / GRID_SIZE),
 });
 
+const wrapIndex = (value: number): number =>
+  ((value % GRID_SIZE) + GRID_SIZE) % GRID_SIZE;
+
+const getWrappedIndex = (row: number, col: number): number =>
+  wrapIndex(col) * GRID_SIZE + wrapIndex(row);
+
 /**
  * ランダムで X 個埋める
  */
@@ -124,14 +130,11 @@ export class ActivateVerticalBonus implements BonusHandler {
     if (baseIndex === null) {
       return [];
     }
-    const { row } = getRowCol(baseIndex);
-    const targets: number[] = [];
-    if (row > 0) {
-      targets.push(baseIndex - 1);
-    }
-    if (row < GRID_SIZE - 1) {
-      targets.push(baseIndex + 1);
-    }
+    const { row, col } = getRowCol(baseIndex);
+    const targets: number[] = [
+      getWrappedIndex(row - 1, col),
+      getWrappedIndex(row + 1, col),
+    ];
     const activatedNumbers: number[] = [];
     for (const index of targets) {
       const activated = activateCell(cells[index]);
@@ -154,14 +157,11 @@ export class ActivateHorizontalBonus implements BonusHandler {
     if (baseIndex === null) {
       return [];
     }
-    const { col } = getRowCol(baseIndex);
-    const targets: number[] = [];
-    if (col > 0) {
-      targets.push(baseIndex - GRID_SIZE);
-    }
-    if (col < GRID_SIZE - 1) {
-      targets.push(baseIndex + GRID_SIZE);
-    }
+    const { row, col } = getRowCol(baseIndex);
+    const targets: number[] = [
+      getWrappedIndex(row, col - 1),
+      getWrappedIndex(row, col + 1),
+    ];
     const activatedNumbers: number[] = [];
     for (const index of targets) {
       const activated = activateCell(cells[index]);
@@ -185,19 +185,12 @@ export class ActivateCrossBonus implements BonusHandler {
       return [];
     }
     const { row, col } = getRowCol(baseIndex);
-    const targets: number[] = [];
-    if (row > 0) {
-      targets.push(baseIndex - 1);
-    }
-    if (row < GRID_SIZE - 1) {
-      targets.push(baseIndex + 1);
-    }
-    if (col > 0) {
-      targets.push(baseIndex - GRID_SIZE);
-    }
-    if (col < GRID_SIZE - 1) {
-      targets.push(baseIndex + GRID_SIZE);
-    }
+    const targets: number[] = [
+      getWrappedIndex(row - 1, col),
+      getWrappedIndex(row + 1, col),
+      getWrappedIndex(row, col - 1),
+      getWrappedIndex(row, col + 1),
+    ];
     const activatedNumbers: number[] = [];
     for (const index of targets) {
       const activated = activateCell(cells[index]);
@@ -221,19 +214,12 @@ export class ActivateXDiagonalBonus implements BonusHandler {
       return [];
     }
     const { row, col } = getRowCol(baseIndex);
-    const targets: number[] = [];
-    if (row > 0 && col > 0) {
-      targets.push(baseIndex - GRID_SIZE - 1);
-    }
-    if (row < GRID_SIZE - 1 && col > 0) {
-      targets.push(baseIndex - GRID_SIZE + 1);
-    }
-    if (row > 0 && col < GRID_SIZE - 1) {
-      targets.push(baseIndex + GRID_SIZE - 1);
-    }
-    if (row < GRID_SIZE - 1 && col < GRID_SIZE - 1) {
-      targets.push(baseIndex + GRID_SIZE + 1);
-    }
+    const targets: number[] = [
+      getWrappedIndex(row - 1, col - 1),
+      getWrappedIndex(row + 1, col - 1),
+      getWrappedIndex(row - 1, col + 1),
+      getWrappedIndex(row + 1, col + 1),
+    ];
     const activatedNumbers: number[] = [];
     for (const index of targets) {
       const activated = activateCell(cells[index]);
@@ -256,13 +242,14 @@ export class ActivateBoxBonus implements BonusHandler {
     if (baseIndex === null) {
       return [];
     }
+    const { row, col } = getRowCol(baseIndex);
     const targets: number[] = [];
     for (let i = -1; i <= 1; i++) {
       for (let j = -1; j <= 1; j++) {
         if (i === 0 && j === 0) {
           continue;
         }
-        targets.push(baseIndex + i * GRID_SIZE + j);
+        targets.push(getWrappedIndex(row + j, col + i));
       }
     }
     const activatedNumbers: number[] = [];
