@@ -141,6 +141,8 @@ export interface TotalStatistics {
   totalScore: number;
   /** スコア分布 (スコア => 回数) */
   linesDistribution: Map<number, number>;
+  /** 抽選後アクティブマス数分布 (アクティブ数 => 回数) */
+  activeCountDistribution: Map<number, number>;
   /** 抽選後アクティブマス数の合計 */
   totalActiveCount: number;
   /** ボーナス種類別の統計 */

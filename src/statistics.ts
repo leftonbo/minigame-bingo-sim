@@ -24,6 +24,7 @@ export class StatisticsManager {
       totalLines: 0,
       totalScore: 0,
       linesDistribution: new Map<number, number>(),
+      activeCountDistribution: new Map<number, number>(),
       totalActiveCount: 0,
       bonusTypeStats: new Map<BonusType, BonusTypeStatistics>(),
     };
@@ -53,6 +54,10 @@ export class StatisticsManager {
     // 獲得ライン分布を更新
     const currentCount = this.stats.linesDistribution.get(draw.linesCompleted) || 0;
     this.stats.linesDistribution.set(draw.linesCompleted, currentCount + 1);
+
+    // 抽選後アクティブマス数分布を更新
+    const activeCount = this.stats.activeCountDistribution.get(draw.activeCount) || 0;
+    this.stats.activeCountDistribution.set(draw.activeCount, activeCount + 1);
 
     if (draw.bonusApplied && draw.bonusType) {
       const bonusStats = this.getOrCreateBonusStats(draw.bonusType);
@@ -117,11 +122,26 @@ export class StatisticsManager {
     return entries.sort((a, b) => a[0] - b[0]);
   }
 
+  /** 抽選後アクティブマス数分布を取得（ソート済み） */
+  getActiveCountDistribution(): [number, number][] {
+    const entries = Array.from(this.stats.activeCountDistribution.entries());
+    return entries.sort((a, b) => a[0] - b[0]);
+  }
+
   /** スコア分布をCSVで取得 */
   getLinesDistributionCsv(): string {
     const header = 'score,count';
     const rows = this.getLinesDistribution().map(([lines, count]) => {
       return `${lines},${count}`;
+    });
+    return [header, ...rows].join('\n');
+  }
+
+  /** 抽選後アクティブマス数分布をCSVで取得 */
+  getActiveCountDistributionCsv(): string {
+    const header = 'activeCount,count';
+    const rows = this.getActiveCountDistribution().map(([activeCount, count]) => {
+      return `${activeCount},${count}`;
     });
     return [header, ...rows].join('\n');
   }

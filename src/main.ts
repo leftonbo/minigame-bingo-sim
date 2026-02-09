@@ -257,6 +257,7 @@ class BingoUI {
     const totalScore = stats.getTotalScore();
     const avgActive = stats.getAverageActiveCount().toFixed(2);
     const linesDistribution = stats.getLinesDistribution();
+    const activeCountDistribution = stats.getActiveCountDistribution();
     const lastResult = this.game.getLastResult();
     const latestBonusHtml = this.renderLatestBonus(lastResult);
 
@@ -302,7 +303,14 @@ class BingoUI {
           <h3>獲得ライン分布</h3>
           <button id="btn-export-lines-csv" class="btn btn-export">CSV出力</button>
         </div>
-        ${this.renderDistribution(linesDistribution, totalDraws)}
+        ${this.renderDistribution(linesDistribution, totalDraws, 'ライン')}
+      </div>
+      <div class="distribution">
+        <div class="distribution-header">
+          <h3>抽選後のアクティブマス数の分布</h3>
+          <button id="btn-export-active-count-csv" class="btn btn-export">CSV出力</button>
+        </div>
+        ${this.renderDistribution(activeCountDistribution, totalDraws, 'マス')}
       </div>
       <div class="distribution">
         <div class="distribution-header">
@@ -317,6 +325,8 @@ class BingoUI {
 
     const exportButton = this.statsElement.querySelector<HTMLButtonElement>('#btn-export-lines-csv');
     exportButton?.addEventListener('click', () => this.exportLinesDistributionCsv());
+    const exportActiveCountButton = this.statsElement.querySelector<HTMLButtonElement>('#btn-export-active-count-csv');
+    exportActiveCountButton?.addEventListener('click', () => this.exportActiveCountDistributionCsv());
     const exportBonusStatsButton = this.statsElement.querySelector<HTMLButtonElement>('#btn-export-bonus-stats-csv');
     exportBonusStatsButton?.addEventListener('click', () => this.exportBonusTypeStatsCsv());
     const exportBonusLinesButton = this.statsElement.querySelector<HTMLButtonElement>('#btn-export-bonus-lines-csv');
@@ -355,7 +365,7 @@ class BingoUI {
     `;
   }
 
-  private renderDistribution(distribution: [number, number][], total: number): string {
+  private renderDistribution(distribution: [number, number][], total: number, labelSuffix: string): string {
     if (distribution.length === 0) {
       return '<div class="distribution-empty">データなし</div>';
     }
@@ -367,7 +377,7 @@ class BingoUI {
       const height = maxCount > 0 ? (count / maxCount) * maxHeight : 0;
       const percentage = total > 0 ? ((count / total) * 100).toFixed(3) : '0';
       return `
-        <div class="distribution-bar" style="height: ${height}px;" title="${score} ライン: ${count} 回 (${percentage}%)">
+        <div class="distribution-bar" style="height: ${height}px;" title="${score} ${labelSuffix}: ${count} 回 (${percentage}%)">
           <span class="distribution-count">${count}</span>
           <span class="distribution-percent">${percentage}%</span>
           <span class="distribution-label">${score}</span>
@@ -392,6 +402,12 @@ class BingoUI {
     link.remove();
 
     URL.revokeObjectURL(url);
+  }
+
+  private exportActiveCountDistributionCsv(): void {
+    const stats = this.game.getStatistics();
+    const csv = stats.getActiveCountDistributionCsv();
+    this.downloadCsv(csv, this.buildActiveCountDistributionFilename());
   }
 
   private exportBonusTypeStatsCsv(): void {
@@ -422,6 +438,10 @@ class BingoUI {
 
   private buildLinesDistributionFilename(): string {
     return this.buildCsvFilename('lines-distribution');
+  }
+
+  private buildActiveCountDistributionFilename(): string {
+    return this.buildCsvFilename('active-count-distribution');
   }
 
   private buildBonusTypeStatsFilename(): string {
