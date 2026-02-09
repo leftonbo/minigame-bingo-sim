@@ -208,7 +208,8 @@ export class BingoGame {
     const score = this.getScore(linesCompleted);
 
     // アクティブマス数をカウント
-    const activeCount = this.card.filter((c) => c.isActive).length;
+    // ビンゴ列は次回抽選で非アクティブになるので、非アクティブになったものとして処理
+    const activeCount = this.card.filter((c) => c.isFree || (c.isActive && !c.isLine)).length;
 
     // リーチ状態を更新
     this.updateReachStatus();
